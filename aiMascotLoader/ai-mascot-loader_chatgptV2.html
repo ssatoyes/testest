@@ -1,0 +1,117 @@
+
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YES24 AI Loader Pack v2</title>
+<style>
+body{margin:0;padding:40px;font-family:Pretendard,sans-serif;background:#fafbff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:32px}
+.card{height:260px;border:1px solid #e5e7eb;border-radius:24px;background:white;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.bot{width:72px;height:72px;position:relative;z-index:5}
+
+/* 1 레이더 */
+.radar::before{
+ content:"";position:absolute;width:180px;height:180px;border-radius:50%;
+ background:conic-gradient(from 0deg,transparent,rgba(37,99,235,.5),transparent);
+ animation:spin 2s linear infinite;
+}
+.radar::after{
+ content:"";position:absolute;width:160px;height:160px;border:1px solid #dbeafe;border-radius:50%;
+}
+
+/* 2 생각중 */
+.think .bubble{
+ position:absolute;width:16px;height:16px;border-radius:50%;background:#3b82f6;
+ animation:orbit 2s linear infinite;
+ transform-origin:0 0;
+}
+.think .b2{animation-delay:.5s}
+.think .b3{animation-delay:1s}
+
+/* 3 AI 스캔 */
+.scan .line{
+ position:absolute;width:180px;height:6px;
+ background:linear-gradient(90deg,transparent,#3b82f6,transparent);
+ animation:scan 2s ease-in-out infinite;
+}
+.scan .glow{
+ position:absolute;width:110px;height:110px;border-radius:50%;
+ background:rgba(59,130,246,.15);
+ animation:pulse 1.5s infinite;
+}
+
+/* 4 로켓 */
+.rocket .bot{
+ animation:fly 1.4s ease-in-out infinite;
+}
+.rocket .trail{
+ position:absolute;width:80px;height:8px;background:linear-gradient(90deg,#93c5fd,transparent);
+ left:60px;
+ animation:trail 1.4s infinite;
+}
+
+/* 5 AI 브레인 */
+.brain .ring1,.brain .ring2{
+ position:absolute;border-radius:50%;border:2px dashed #60a5fa;
+}
+.brain .ring1{width:120px;height:120px;animation:spin 6s linear infinite}
+.brain .ring2{width:170px;height:170px;animation:spinR 8s linear infinite}
+.brain .dot{
+ position:absolute;width:10px;height:10px;border-radius:50%;background:#2563eb;
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinR{to{transform:rotate(-360deg)}}
+@keyframes pulse{50%{transform:scale(1.15)}}
+@keyframes scan{0%,100%{transform:translateY(-60px)}50%{transform:translateY(60px)}}
+@keyframes fly{50%{transform:translate(25px,-15px)}}
+@keyframes trail{50%{opacity:.2;transform:scaleX(1.5)}}
+@keyframes orbit{
+ from{transform:rotate(0deg) translateX(60px) rotate(0deg)}
+ to{transform:rotate(360deg) translateX(60px) rotate(-360deg)}
+}
+
+.title{position:absolute;bottom:18px;font-size:13px;color:#64748b}
+</style>
+</head>
+<body>
+<div class="grid">
+
+<div class="card radar">
+  <img class="bot" src="https://chat.yes24.com/imgs/HeaderIcon.png">
+  <div class="title">Radar Scan</div>
+</div>
+
+<div class="card think">
+  <div class="bubble"></div>
+  <div class="bubble b2"></div>
+  <div class="bubble b3"></div>
+  <img class="bot" src="https://chat.yes24.com/imgs/HeaderIcon.png">
+  <div class="title">Thinking</div>
+</div>
+
+<div class="card scan">
+  <div class="glow"></div>
+  <div class="line"></div>
+  <img class="bot" src="https://chat.yes24.com/imgs/HeaderIcon.png">
+  <div class="title">AI Scanning</div>
+</div>
+
+<div class="card rocket">
+  <div class="trail"></div>
+  <img class="bot" src="https://chat.yes24.com/imgs/HeaderIcon.png">
+  <div class="title">Fast Analysis</div>
+</div>
+
+<div class="card brain">
+  <div class="ring1"></div>
+  <div class="ring2"></div>
+  <img class="bot" src="https://chat.yes24.com/imgs/HeaderIcon.png">
+  <div class="title">Neural Processing</div>
+</div>
+
+</div>
+</body>
+</html>

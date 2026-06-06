@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>YES24 AI Loading 5 Types</title>
+<style>
+  :root {
+    --ai-blue:#2f7df6;
+    --ai-blue-2:#79adff;
+    --gray:#d8dee8;
+    --gray-2:#edf1f7;
+  }
+
+  * { box-sizing:border-box; }
+
+  html, body {
+    margin:0;
+    min-height:100%;
+    background:transparent;
+    font-family:Pretendard, "Noto Sans KR", system-ui, sans-serif;
+  }
+
+  body {
+    padding:32px;
+  }
+
+  .loading-grid {
+    display:grid;
+    grid-template-columns:repeat(5, 180px);
+    gap:28px;
+    align-items:center;
+    justify-content:center;
+    background:transparent;
+  }
+
+  .loader {
+    width:180px;
+    height:180px;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:transparent;
+  }
+
+  .mascot {
+    width:68px;
+    height:68px;
+    object-fit:contain;
+    display:block;
+    position:relative;
+    z-index:5;
+    filter:drop-shadow(0 8px 14px rgba(15,23,42,.18));
+  }
+
+  .type-dots .mascot {
+    animation: float 1.5s ease-in-out infinite;
+  }
+
+  .side-dot {
+    position:absolute;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:var(--gray);
+    animation: dotPulse 1.2s ease-in-out infinite;
+  }
+
+  .side-dot.d1 { left:28px; animation-delay:0s; }
+  .side-dot.d2 { left:52px; animation-delay:.15s; }
+  .side-dot.d3 { right:52px; animation-delay:.3s; }
+  .side-dot.d4 { right:28px; animation-delay:.45s; }
+
+  .type-ring::before {
+    content:"";
+    position:absolute;
+    width:132px;
+    height:132px;
+    border-radius:50%;
+    border:8px solid rgba(216,222,232,.85);
+  }
+
+  .type-ring::after {
+    content:"";
+    position:absolute;
+    width:132px;
+    height:132px;
+    border-radius:50%;
+    border:8px solid transparent;
+    border-top-color:var(--ai-blue);
+    border-right-color:var(--ai-blue);
+    animation:spin 1s linear infinite;
+  }
+
+  .type-ring .mascot {
+    animation:breathe 1.3s ease-in-out infinite;
+  }
+
+  .type-orbit .orbit {
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    animation:spin 2.2s linear infinite;
+  }
+
+  .orbit-dot {
+    position:absolute;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:var(--ai-blue);
+    animation:dotFade 1.1s ease-in-out infinite;
+  }
+
+  .orbit-dot:nth-child(1) { transform:rotate(0deg) translateX(74px); animation-delay:0s; }
+  .orbit-dot:nth-child(2) { transform:rotate(30deg) translateX(74px); animation-delay:.08s; }
+  .orbit-dot:nth-child(3) { transform:rotate(60deg) translateX(74px); animation-delay:.16s; }
+  .orbit-dot:nth-child(4) { transform:rotate(90deg) translateX(74px); animation-delay:.24s; }
+  .orbit-dot:nth-child(5) { transform:rotate(120deg) translateX(74px); animation-delay:.32s; }
+  .orbit-dot:nth-child(6) { transform:rotate(150deg) translateX(74px); animation-delay:.4s; }
+  .orbit-dot:nth-child(7) { transform:rotate(180deg) translateX(74px); animation-delay:.48s; }
+  .orbit-dot:nth-child(8) { transform:rotate(210deg) translateX(74px); animation-delay:.56s; }
+  .orbit-dot:nth-child(9) { transform:rotate(240deg) translateX(74px); animation-delay:.64s; }
+  .orbit-dot:nth-child(10) { transform:rotate(270deg) translateX(74px); animation-delay:.72s; }
+  .orbit-dot:nth-child(11) { transform:rotate(300deg) translateX(74px); animation-delay:.8s; }
+  .orbit-dot:nth-child(12) { transform:rotate(330deg) translateX(74px); animation-delay:.88s; }
+
+  .type-bar {
+    align-items:flex-end;
+    padding-bottom:52px;
+  }
+
+  .bar-track {
+    position:absolute;
+    left:18px;
+    right:18px;
+    bottom:48px;
+    height:10px;
+    border-radius:999px;
+    background:var(--gray-2);
+    overflow:hidden;
+  }
+
+  .bar-fill {
+    height:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg, var(--ai-blue), var(--ai-blue-2));
+    animation:barFill 2.2s ease-in-out infinite;
+  }
+
+  .type-bar .mascot {
+    position:absolute;
+    bottom:54px;
+    left:18px;
+    width:62px;
+    height:62px;
+    animation:runOnBar 2.2s ease-in-out infinite;
+  }
+
+  .speed-lines {
+    position:absolute;
+    bottom:92px;
+    left:6px;
+    display:grid;
+    gap:5px;
+    animation:runLines 2.2s ease-in-out infinite;
+  }
+
+  .speed-lines span {
+    display:block;
+    height:4px;
+    border-radius:999px;
+    background:var(--ai-blue-2);
+    opacity:.7;
+  }
+
+  .speed-lines span:nth-child(1) { width:28px; }
+  .speed-lines span:nth-child(2) { width:18px; }
+  .speed-lines span:nth-child(3) { width:26px; }
+
+  .type-step {
+    width:260px;
+  }
+
+  .step-line {
+    position:absolute;
+    left:20px;
+    right:20px;
+    height:3px;
+    background:var(--gray);
+    top:90px;
+  }
+
+  .step-line::after {
+    content:"";
+    display:block;
+    height:100%;
+    width:58%;
+    background:var(--ai-blue);
+    animation:stepFill 2s ease-in-out infinite;
+  }
+
+  .step {
+    position:absolute;
+    top:75px;
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    border:2px solid var(--gray);
+    background:transparent;
+  }
+
+  .step.s1 { left:20px; background:var(--ai-blue); border-color:var(--ai-blue); }
+  .step.s2 { left:78px; background:var(--ai-blue); border-color:var(--ai-blue); }
+  .step.s3 { left:140px; }
+  .step.s4 { right:20px; }
+
+  .type-step .mascot {
+    position:absolute;
+    top:55px;
+    left:102px;
+    width:68px;
+    height:68px;
+    padding:6px;
+    border-radius:50%;
+    animation:stepMascot 1.5s ease-in-out infinite;
+  }
+
+  .halo {
+    position:absolute;
+    width:96px;
+    height:96px;
+    border-radius:50%;
+    background:rgba(47,125,246,.14);
+    animation:pulse 1.5s ease-in-out infinite;
+  }
+
+  .type-step .halo {
+    left:88px;
+    top:40px;
+  }
+
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes float { 0%, 100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+  @keyframes breathe { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.07); } }
+  @keyframes pulse { 0%, 100% { transform:scale(.75); opacity:.3; } 50% { transform:scale(1.08); opacity:.75; } }
+  @keyframes dotPulse { 0%, 100% { opacity:.25; transform:scale(.72); background:var(--gray); } 50% { opacity:1; transform:scale(1.18); background:var(--ai-blue); } }
+  @keyframes dotFade { 0%, 100% { opacity:.18; } 50% { opacity:1; } }
+  @keyframes barFill { 0% { width:12%; } 50% { width:76%; } 100% { width:12%; } }
+  @keyframes runOnBar { 0% { left:18px; transform:translateY(0); } 50% { left:112px; transform:translateY(-5px); } 100% { left:18px; transform:translateY(0); } }
+  @keyframes runLines { 0% { left:6px; opacity:.2; } 50% { left:92px; opacity:.8; } 100% { left:6px; opacity:.2; } }
+  @keyframes stepFill { 0%, 100% { width:28%; } 50% { width:62%; } }
+  @keyframes stepMascot { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+
+  @media (max-width:1100px) {
+    .loading-grid { grid-template-columns:repeat(2, 180px); }
+    .type-step { grid-column:1 / -1; justify-self:center; }
+  }
+
+  @media (max-width:520px) {
+    body { padding:20px; }
+    .loading-grid { grid-template-columns:1fr; }
+    .loader, .type-step { width:220px; justify-self:center; }
+  }
+</style>
+</head>
+<body>
+  <main class="loading-grid">
+    <section class="loader type-dots" aria-label="AI 분석 중 - 점 로딩">
+      <span class="side-dot d1"></span>
+      <span class="side-dot d2"></span>
+      <img class="mascot" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAA81JREFUeAHtmz+SmzAUxr/NpEi3TpV0KN2WpEsX9gTxDaIbZG+w5ATrlKm8e4KNT4DdpbPTpQN36eycgOgNsMYONtKzBPKsfzPfGIMQek8P/QOAM2eeNRfoD6EUlb9Bbf9Saa20KLWGQ7p2QKT0WWmoNCj3kYFTbAyn/UGZlrYX5fFvShlOEDLiVmmllNeUoDByF6F015CeNC6Pnwxf0GxIfOCctCF9XXRcwHNCpTmaDRi1nJdriJwwgKdQrXNrT0DPASQJz6AaGeNwocca+STQc0AMjyDj94V8XUONvATa2wFSBE/QNZ4UGuQbo9kR1KjewBI2xgFkvK5h72rbA2w3ZDQGyPD/wIfyFmXaaszgdHBkAvXXuQORUx9RNHQCnnILN8bv6z0kPHKGQHfGN/UkAj1DNZL3qCoiekGiX+N3o6HTESFdLIU/DqiiQaAjJPwyvu6ETiIhBZB7qgSOkQByz3UHhyQA8hNQBAN0h8ICRfizCcMQURQhCAIMBoMnVWRZhvV6jeVyiel0isViASZTpWtYRoJZI8roPEmS3JQ0TXMhRCdRoMMjpyDD4TA/FnIg49oJLLPiOIBq8VhWq1WubhVnUfBCIw1NR437WCklVAjjWKidoLwY6Cy+aGdkXAOc+34flBejDCksEXMcQKFrC8qLUwZoDJF1bgEBQ6jLq3dxx0J5MW+nqC2BjgMCGNJmfMZY0GI6oHWpTscBxlV5yAHvv6uFQfWU7/phez/9v/iqHgD+bD6P6YDLtgSdOmDyWz3p/FNs16PgXg36plmxXf1awkoEWKNuXPhms/1QG/WK17BJa+U5aQT3hWv2d7P96ap5/8fALM9j0XFABktUxoVv1UCpFpzicrN/eAWbtEbASziAZnZN3HwoDB+82t6fSOCHah8igb3QTNEFOg6weuVd4yvaap7pgNaTOr0FesCKA5YwxEW47rutWrDiAOOlGWZhD8J06i9YQMBwEkLzd9sw1wSsTYmNF0RsLIZUzOfzXmeDxAMMmUwmsMVsNgODDBYb8AiG3qcFTVswF0fHsIzuazBPGo1G+bHEccwNf5PXcbS44RSEDOBCDuRcE44ek7GfDFMIkzG0tndoqYyOUYNHaZnL4ZUkHCHBL9SWqFsjx5CYXVyntV8ngb3CupCAYwSYD0o6UIyOiOCf8Y/oGAl/jKcuupe3xyWesfEVEfp7deYennw3INBt72D1hWmbSLiPhjFO4JMZCbuOoBofwaNvBHShCQkVPAHPaOraKNSd3eddfjdIRoQ7v/Vnd9V3gxmKZbgMZ86ccc0/jna637VtDCsAAAAASUVORK5CYII=" alt="YES24 AI">
+      <span class="side-dot d3"></span>
+      <span class="side-dot d4"></span>
+    </section>
+
+    <section class="loader type-ring" aria-label="AI 분석 중 - 원형 프로그레스">
+      <img class="mascot" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAA81JREFUeAHtmz+SmzAUxr/NpEi3TpV0KN2WpEsX9gTxDaIbZG+w5ATrlKm8e4KNT4DdpbPTpQN36eycgOgNsMYONtKzBPKsfzPfGIMQek8P/QOAM2eeNRfoD6EUlb9Bbf9Saa20KLWGQ7p2QKT0WWmoNCj3kYFTbAyn/UGZlrYX5fFvShlOEDLiVmmllNeUoDByF6F015CeNC6Pnwxf0GxIfOCctCF9XXRcwHNCpTmaDRi1nJdriJwwgKdQrXNrT0DPASQJz6AaGeNwocca+STQc0AMjyDj94V8XUONvATa2wFSBE/QNZ4UGuQbo9kR1KjewBI2xgFkvK5h72rbA2w3ZDQGyPD/wIfyFmXaaszgdHBkAvXXuQORUx9RNHQCnnILN8bv6z0kPHKGQHfGN/UkAj1DNZL3qCoiekGiX+N3o6HTESFdLIU/DqiiQaAjJPwyvu6ETiIhBZB7qgSOkQByz3UHhyQA8hNQBAN0h8ICRfizCcMQURQhCAIMBoMnVWRZhvV6jeVyiel0isViASZTpWtYRoJZI8roPEmS3JQ0TXMhRCdRoMMjpyDD4TA/FnIg49oJLLPiOIBq8VhWq1WubhVnUfBCIw1NR437WCklVAjjWKidoLwY6Cy+aGdkXAOc+34flBejDCksEXMcQKFrC8qLUwZoDJF1bgEBQ6jLq3dxx0J5MW+nqC2BjgMCGNJmfMZY0GI6oHWpTscBxlV5yAHvv6uFQfWU7/phez/9v/iqHgD+bD6P6YDLtgSdOmDyWz3p/FNs16PgXg36plmxXf1awkoEWKNuXPhms/1QG/WK17BJa+U5aQT3hWv2d7P96ap5/8fALM9j0XFABktUxoVv1UCpFpzicrN/eAWbtEbASziAZnZN3HwoDB+82t6fSOCHah8igb3QTNEFOg6weuVd4yvaap7pgNaTOr0FesCKA5YwxEW47rutWrDiAOOlGWZhD8J06i9YQMBwEkLzd9sw1wSsTYmNF0RsLIZUzOfzXmeDxAMMmUwmsMVsNgODDBYb8AiG3qcFTVswF0fHsIzuazBPGo1G+bHEccwNf5PXcbS44RSEDOBCDuRcE44ek7GfDFMIkzG0tndoqYyOUYNHaZnL4ZUkHCHBL9SWqFsjx5CYXVyntV8ngb3CupCAYwSYD0o6UIyOiOCf8Y/oGAl/jKcuupe3xyWesfEVEfp7deYennw3INBt72D1hWmbSLiPhjFO4JMZCbuOoBofwaNvBHShCQkVPAHPaOraKNSd3eddfjdIRoQ7v/Vnd9V3gxmKZbgMZ86ccc0/jna637VtDCsAAAAASUVORK5CYII=" alt="YES24 AI">
+    </section>
+
+    <section class="loader type-orbit" aria-label="AI 분석 중 - 점 스피너">
+      <div class="orbit">
+        <span class="orbit-dot"></span><span class="orbit-dot"></span><span class="orbit-dot"></span>
+        <span class="orbit-dot"></span><span class="orbit-dot"></span><span class="orbit-dot"></span>
+        <span class="orbit-dot"></span><span class="orbit-dot"></span><span class="orbit-dot"></span>
+        <span class="orbit-dot"></span><span class="orbit-dot"></span><span class="orbit-dot"></span>
+      </div>
+      <img class="mascot" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAA81JREFUeAHtmz+SmzAUxr/NpEi3TpV0KN2WpEsX9gTxDaIbZG+w5ATrlKm8e4KNT4DdpbPTpQN36eycgOgNsMYONtKzBPKsfzPfGIMQek8P/QOAM2eeNRfoD6EUlb9Bbf9Saa20KLWGQ7p2QKT0WWmoNCj3kYFTbAyn/UGZlrYX5fFvShlOEDLiVmmllNeUoDByF6F015CeNC6Pnwxf0GxIfOCctCF9XXRcwHNCpTmaDRi1nJdriJwwgKdQrXNrT0DPASQJz6AaGeNwocca+STQc0AMjyDj94V8XUONvATa2wFSBE/QNZ4UGuQbo9kR1KjewBI2xgFkvK5h72rbA2w3ZDQGyPD/wIfyFmXaaszgdHBkAvXXuQORUx9RNHQCnnILN8bv6z0kPHKGQHfGN/UkAj1DNZL3qCoiekGiX+N3o6HTESFdLIU/DqiiQaAjJPwyvu6ETiIhBZB7qgSOkQByz3UHhyQA8hNQBAN0h8ICRfizCcMQURQhCAIMBoMnVWRZhvV6jeVyiel0isViASZTpWtYRoJZI8roPEmS3JQ0TXMhRCdRoMMjpyDD4TA/FnIg49oJLLPiOIBq8VhWq1WubhVnUfBCIw1NR437WCklVAjjWKidoLwY6Cy+aGdkXAOc+34flBejDCksEXMcQKFrC8qLUwZoDJF1bgEBQ6jLq3dxx0J5MW+nqC2BjgMCGNJmfMZY0GI6oHWpTscBxlV5yAHvv6uFQfWU7/phez/9v/iqHgD+bD6P6YDLtgSdOmDyWz3p/FNs16PgXg36plmxXf1awkoEWKNuXPhms/1QG/WK17BJa+U5aQT3hWv2d7P96ap5/8fALM9j0XFABktUxoVv1UCpFpzicrN/eAWbtEbASziAZnZN3HwoDB+82t6fSOCHah8igb3QTNEFOg6weuVd4yvaap7pgNaTOr0FesCKA5YwxEW47rutWrDiAOOlGWZhD8J06i9YQMBwEkLzd9sw1wSsTYmNF0RsLIZUzOfzXmeDxAMMmUwmsMVsNgODDBYb8AiG3qcFTVswF0fHsIzuazBPGo1G+bHEccwNf5PXcbS44RSEDOBCDuRcE44ek7GfDFMIkzG0tndoqYyOUYNHaZnL4ZUkHCHBL9SWqFsjx5CYXVyntV8ngb3CupCAYwSYD0o6UIyOiOCf8Y/oGAl/jKcuupe3xyWesfEVEfp7deYennw3INBt72D1hWmbSLiPhjFO4JMZCbuOoBofwaNvBHShCQkVPAHPaOraKNSd3eddfjdIRoQ7v/Vnd9V3gxmKZbgMZ86ccc0/jna637VtDCsAAAAASUVORK5CYII=" alt="YES24 AI">
+    </section>
+
+    <section class="loader type-bar" aria-label="AI 분석 중 - 프로그레스바">
+      <div class="speed-lines"><span></span><span></span><span></span></div>
+      <div class="bar-track"><div class="bar-fill"></div></div>
+      <img class="mascot" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAA81JREFUeAHtmz+SmzAUxr/NpEi3TpV0KN2WpEsX9gTxDaIbZG+w5ATrlKm8e4KNT4DdpbPTpQN36eycgOgNsMYONtKzBPKsfzPfGIMQek8P/QOAM2eeNRfoD6EUlb9Bbf9Saa20KLWGQ7p2QKT0WWmoNCj3kYFTbAyn/UGZlrYX5fFvShlOEDLiVmmllNeUoDByF6F015CeNC6Pnwxf0GxIfOCctCF9XXRcwHNCpTmaDRi1nJdriJwwgKdQrXNrT0DPASQJz6AaGeNwocca+STQc0AMjyDj94V8XUONvATa2wFSBE/QNZ4UGuQbo9kR1KjewBI2xgFkvK5h72rbA2w3ZDQGyPD/wIfyFmXaaszgdHBkAvXXuQORUx9RNHQCnnILN8bv6z0kPHKGQHfGN/UkAj1DNZL3qCoiekGiX+N3o6HTESFdLIU/DqiiQaAjJPwyvu6ETiIhBZB7qgSOkQByz3UHhyQA8hNQBAN0h8ICRfizCcMQURQhCAIMBoMnVWRZhvV6jeVyiel0isViASZTpWtYRoJZI8roPEmS3JQ0TXMhRCdRoMMjpyDD4TA/FnIg49oJLLPiOIBq8VhWq1WubhVnUfBCIw1NR437WCklVAjjWKidoLwY6Cy+aGdkXAOc+34flBejDCksEXMcQKFrC8qLUwZoDJF1bgEBQ6jLq3dxx0J5MW+nqC2BjgMCGNJmfMZY0GI6oHWpTscBxlV5yAHvv6uFQfWU7/phez/9v/iqHgD+bD6P6YDLtgSdOmDyWz3p/FNs16PgXg36plmxXf1awkoEWKNuXPhms/1QG/WK17BJa+U5aQT3hWv2d7P96ap5/8fALM9j0XFABktUxoVv1UCpFpzicrN/eAWbtEbASziAZnZN3HwoDB+82t6fSOCHah8igb3QTNEFOg6weuVd4yvaap7pgNaTOr0FesCKA5YwxEW47rutWrDiAOOlGWZhD8J06i9YQMBwEkLzd9sw1wSsTYmNF0RsLIZUzOfzXmeDxAMMmUwmsMVsNgODDBYb8AiG3qcFTVswF0fHsIzuazBPGo1G+bHEccwNf5PXcbS44RSEDOBCDuRcE44ek7GfDFMIkzG0tndoqYyOUYNHaZnL4ZUkHCHBL9SWqFsjx5CYXVyntV8ngb3CupCAYwSYD0o6UIyOiOCf8Y/oGAl/jKcuupe3xyWesfEVEfp7deYennw3INBt72D1hWmbSLiPhjFO4JMZCbuOoBofwaNvBHShCQkVPAHPaOraKNSd3eddfjdIRoQ7v/Vnd9V3gxmKZbgMZ86ccc0/jna637VtDCsAAAAASUVORK5CYII=" alt="YES24 AI">
+    </section>
+
+    <section class="loader type-step" aria-label="AI 분석 중 - 단계형">
+      <div class="step-line"></div>
+      <span class="step s1"></span>
+      <span class="step s2"></span>
+      <span class="step s3"></span>
+      <span class="step s4"></span>
+      <span class="halo"></span>
+      <img class="mascot" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAA81JREFUeAHtmz+SmzAUxr/NpEi3TpV0KN2WpEsX9gTxDaIbZG+w5ATrlKm8e4KNT4DdpbPTpQN36eycgOgNsMYONtKzBPKsfzPfGIMQek8P/QOAM2eeNRfoD6EUlb9Bbf9Saa20KLWGQ7p2QKT0WWmoNCj3kYFTbAyn/UGZlrYX5fFvShlOEDLiVmmllNeUoDByF6F015CeNC6Pnwxf0GxIfOCctCF9XXRcwHNCpTmaDRi1nJdriJwwgKdQrXNrT0DPASQJz6AaGeNwocca+STQc0AMjyDj94V8XUONvATa2wFSBE/QNZ4UGuQbo9kR1KjewBI2xgFkvK5h72rbA2w3ZDQGyPD/wIfyFmXaaszgdHBkAvXXuQORUx9RNHQCnnILN8bv6z0kPHKGQHfGN/UkAj1DNZL3qCoiekGiX+N3o6HTESFdLIU/DqiiQaAjJPwyvu6ETiIhBZB7qgSOkQByz3UHhyQA8hNQBAN0h8ICRfizCcMQURQhCAIMBoMnVWRZhvV6jeVyiel0isViASZTpWtYRoJZI8roPEmS3JQ0TXMhRCdRoMMjpyDD4TA/FnIg49oJLLPiOIBq8VhWq1WubhVnUfBCIw1NR437WCklVAjjWKidoLwY6Cy+aGdkXAOc+34flBejDCksEXMcQKFrC8qLUwZoDJF1bgEBQ6jLq3dxx0J5MW+nqC2BjgMCGNJmfMZY0GI6oHWpTscBxlV5yAHvv6uFQfWU7/phez/9v/iqHgD+bD6P6YDLtgSdOmDyWz3p/FNs16PgXg36plmxXf1awkoEWKNuXPhms/1QG/WK17BJa+U5aQT3hWv2d7P96ap5/8fALM9j0XFABktUxoVv1UCpFpzicrN/eAWbtEbASziAZnZN3HwoDB+82t6fSOCHah8igb3QTNEFOg6weuVd4yvaap7pgNaTOr0FesCKA5YwxEW47rutWrDiAOOlGWZhD8J06i9YQMBwEkLzd9sw1wSsTYmNF0RsLIZUzOfzXmeDxAMMmUwmsMVsNgODDBYb8AiG3qcFTVswF0fHsIzuazBPGo1G+bHEccwNf5PXcbS44RSEDOBCDuRcE44ek7GfDFMIkzG0tndoqYyOUYNHaZnL4ZUkHCHBL9SWqFsjx5CYXVyntV8ngb3CupCAYwSYD0o6UIyOiOCf8Y/oGAl/jKcuupe3xyWesfEVEfp7deYennw3INBt72D1hWmbSLiPhjFO4JMZCbuOoBofwaNvBHShCQkVPAHPaOraKNSd3eddfjdIRoQ7v/Vnd9V3gxmKZbgMZ86ccc0/jna637VtDCsAAAAASUVORK5CYII=" alt="YES24 AI">
+    </section>
+  </main>
+</body>
+</html>
