@@ -585,7 +585,7 @@
             <span class="signal one"></span>
             <span class="signal two"></span>
             <span class="signal three"></span>
-            <img class="mascot" src="assets/images/ai-mascot-header-icon.png" alt="">
+            <img class="mascot" src="./assets/images/ai-mascot-header-icon.png" alt="">
           </div>
 
           <div class="headline">
