@@ -1,0 +1,2244 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>유튜버 도서 언급 영향 분석 목업</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #687386;
+      --line: #dbe2ea;
+      --primary: #2364aa;
+      --primary-quiet: #e8f1fb;
+      --green: #177245;
+      --green-quiet: #e6f5ed;
+      --amber: #9a5b00;
+      --amber-quiet: #fff2d8;
+      --red: #b43a3a;
+      --shadow: 0 10px 30px rgba(24, 39, 75, 0.08);
+      font-family: "Segoe UI", "Noto Sans KR", system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      padding: 18px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .control {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    select, input[type="search"], input[type="range"] {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      min-height: 36px;
+    }
+
+    select, input[type="search"] {
+      padding: 0 10px;
+    }
+
+    input[type="search"] {
+      width: 220px;
+    }
+
+    main {
+      max-width: 1480px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 18px 24px 28px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(130px, 1fr));
+      gap: 12px;
+    }
+
+    .metric, .panel, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      padding: 16px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 25px;
+      line-height: 1;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .work-area {
+      min-width: 0;
+      display: grid;
+      gap: 16px;
+    }
+
+    .channel-panel {
+      position: sticky;
+      top: 94px;
+      align-self: start;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 15px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .panel-head small {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .channel-list {
+      max-height: calc(100vh - 210px);
+      overflow: auto;
+    }
+
+    .channel-item {
+      width: 100%;
+      text-align: left;
+      background: #fff;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px;
+      display: grid;
+      gap: 7px;
+      cursor: pointer;
+    }
+
+    .channel-item:hover, .channel-item.active {
+      background: var(--primary-quiet);
+    }
+
+    .channel-main {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .channel-name {
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .channel-name-link {
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .channel-name-link:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--primary-quiet);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.green {
+      background: var(--green-quiet);
+      color: var(--green);
+    }
+
+    .badge.amber {
+      background: var(--amber-quiet);
+      color: var(--amber);
+    }
+
+    .channel-meta, .video-meta, .book-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 640px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1534px;
+      table-layout: fixed;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      background: #f9fbfd;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    td {
+      font-size: 13px;
+    }
+
+    th:nth-child(3),
+    th:nth-child(4),
+    th:nth-child(5),
+    td:nth-child(3),
+    td:nth-child(4),
+    td:nth-child(5) {
+      width: 96px;
+      white-space: nowrap;
+    }
+
+    th:nth-child(1), td:nth-child(1) { width: 310px; }
+    th:nth-child(2), td:nth-child(2) { width: 150px; }
+    th:nth-child(6), td:nth-child(6) { width: 220px; }
+    th:nth-child(7), td:nth-child(7) { width: 280px; }
+    th:nth-child(8), td:nth-child(8) { width: 70px; }
+    th:nth-child(9), td:nth-child(9) { width: 300px; }
+
+    .video-title {
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .video-title a {
+      color: inherit;
+    }
+
+    th:nth-child(5) {
+      white-space: normal;
+      line-height: 1.25;
+    }
+
+    td:nth-child(6),
+    td:nth-child(7) {
+      overflow: hidden;
+    }
+
+    td:nth-child(6) .badge,
+    td:nth-child(7) .badge {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tag-stack {
+      display: grid;
+      gap: 5px;
+      justify-items: start;
+      max-height: 68px;
+      overflow: hidden;
+    }
+
+    .tag-stack .badge {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .quote {
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 380px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .right-col {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+      gap: 16px;
+    }
+
+    .book-list {
+      padding: 10px;
+      display: grid;
+      gap: 10px;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .card {
+      padding: 12px;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .card:hover, .card.active {
+      border-color: #9bbbe0;
+      background: #f8fbff;
+    }
+
+    .book-row {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .book-title {
+      font-weight: 800;
+      margin: 0 0 5px;
+    }
+
+    .score {
+      min-width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #102a43;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .detail {
+      padding: 15px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .detail h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .bars {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar {
+      display: grid;
+      gap: 5px;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .track {
+      height: 9px;
+      background: #e8edf3;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: inherit;
+    }
+
+    .timeline {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 86px 1fr 56px;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    .timeline-row:last-child {
+      border-bottom: 0;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 12px 15px 15px;
+      border-top: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .parser-summary {
+      padding: 15px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .parser-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .parser-title h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .parser-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .work-progress {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      min-height: 40px;
+      padding: 10px 12px;
+      border: 1px solid #bdd2ea;
+      border-radius: 8px;
+      background: #f4f9ff;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .work-progress.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #c7d8ec;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex: 0 0 auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .api-controls {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .mini-stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcfe;
+    }
+
+    .mini-stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .mini-stat strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 18px;
+    }
+
+    .primary-button {
+      min-height: 36px;
+      border: 0;
+      border-radius: 7px;
+      padding: 0 12px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .primary-button:hover {
+      background: #1d548f;
+    }
+
+    .secondary-button {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 0 12px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .secondary-button:hover {
+      background: #f8fbff;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+
+    a:hover { text-decoration: underline; }
+
+    .empty {
+      color: var(--muted);
+      padding: 20px;
+      text-align: center;
+    }
+
+    @media (max-width: 1180px) {
+      .workspace {
+        grid-template-columns: 300px minmax(0, 1fr);
+      }
+
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .right-col {
+        grid-column: 1 / -1;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 820px) {
+      header {
+        position: static;
+      }
+
+      .topbar, .controls {
+        align-items: stretch;
+      }
+
+      .topbar, .workspace, .results-grid, .right-col {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .channel-panel {
+        position: static;
+      }
+
+      .channel-list {
+        max-height: 420px;
+      }
+
+      .api-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      input[type="search"] {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="topbar">
+        <div>
+          <h1>유튜버 도서 언급 영향 분석</h1>
+          <p class="subtitle">목업 채널 목록 기반 MVP. 실제 API 연결 전, 분석 화면과 데이터 흐름을 검증합니다.</p>
+        </div>
+        <div class="controls" aria-label="필터">
+          <label class="control">
+            검색
+            <input id="searchInput" type="search" placeholder="채널명, 책 제목, 영상 제목" />
+          </label>
+          <label class="control">
+            분석 기간
+            <select id="periodSelect">
+              <option value="1" selected>최근 1일</option>
+              <option value="3">최근 3일</option>
+              <option value="7">최근 7일</option>
+              <option value="15">최근 15일</option>
+              <option value="30">최근 30일</option>
+              <option value="60">최근 60일</option>
+              <option value="90">최근 90일</option>
+              <option value="180">최근 180일</option>
+            </select>
+          </label>
+          <label class="control">
+            최소 신뢰도 <span id="confidenceText">70%</span>
+            <input id="confidenceRange" type="range" min="50" max="95" value="70" />
+          </label>
+          <label class="control">
+            보기
+            <select id="mentionSelect">
+              <option value="all" selected>전체 영상</option>
+              <option value="books">책 언급 영상</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="workspace">
+        <aside class="panel channel-panel">
+          <div class="panel-head">
+            <h2>채널 목록</h2>
+            <small id="channelCount">0개</small>
+          </div>
+          <div id="channelList" class="channel-list"></div>
+          <div class="note">제공된 채널 URL을 기준으로 만든 목업입니다. 실제 수집 단계에서는 URL을 채널 ID로 정규화하고, 선택 기간 안의 업로드 영상만 먼저 가져옵니다.</div>
+        </aside>
+
+        <section class="work-area">
+          <section class="metrics" aria-label="요약 지표">
+            <div class="metric"><span>분석 채널</span><strong id="metricChannels">0</strong></div>
+            <div class="metric"><span>기간 내 영상</span><strong id="metricVideos">0</strong></div>
+            <div class="metric"><span id="metricParseLabel">1일 파싱 대상</span><strong id="metricParseTargets">0</strong></div>
+            <div class="metric"><span>책 언급 영상</span><strong id="metricMentionVideos">0</strong></div>
+            <div class="metric"><span>추출 도서</span><strong id="metricBooks">0</strong></div>
+            <div class="metric"><span>총 노출 조회수</span><strong id="metricViews">0</strong></div>
+          </section>
+
+          <section class="panel">
+            <div class="parser-summary">
+              <div class="parser-title">
+                <h2 id="parserTitle">최근 1일 업로드 분석</h2>
+                <button id="parseButton" class="primary-button" type="button">파싱 실행</button>
+              </div>
+              <div class="api-controls">
+                <button id="allButton" class="primary-button" type="button">통합 수집</button>
+                <button id="fetchButton" class="primary-button" type="button">실제 API 수집</button>
+                <button id="transcriptButton" class="secondary-button" type="button">자막 수집</button>
+                <button id="browserTranscriptButton" class="secondary-button" type="button">브라우저 스크립트 수집</button>
+                <button id="productButton" class="secondary-button" type="button">제품 태그 수집</button>
+                <button id="mockButton" class="secondary-button" type="button">목록 초기화</button>
+              </div>
+              <div class="parser-grid">
+                <div class="mini-stat"><span>대상 채널</span><strong id="parseChannels">0</strong></div>
+                <div class="mini-stat"><span>수집 영상</span><strong id="parseVideos">0</strong></div>
+                <div class="mini-stat"><span>자막 확보</span><strong id="parseTranscripts">0</strong></div>
+                <div class="mini-stat"><span>제품 태그</span><strong id="parseProducts">0</strong></div>
+                <div class="mini-stat"><span>도서 후보</span><strong id="parseBooks">0</strong></div>
+              </div>
+              <div id="workProgress" class="work-progress" aria-live="polite">
+                <span class="spinner" aria-hidden="true"></span>
+                <span id="workProgressText">작업을 준비하는 중입니다.</span>
+              </div>
+              <div class="quote" id="parseStatus">실제 연결 단계에서는 채널 URL을 채널 ID로 정규화한 뒤, 선택 기간 안에 업로드된 영상만 수집합니다.</div>
+            </div>
+          </section>
+
+          <section class="results-grid">
+            <section class="panel">
+              <div class="panel-head">
+                <h2>영상별 도서 언급 감지</h2>
+                <small id="videoCount">0개</small>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>영상</th>
+                      <th>채널</th>
+                      <th>도서</th>
+                      <th>자막 API</th>
+                      <th>브라우저<br>스크립트</th>
+                      <th>제품 태그</th>
+                      <th>감지 도서</th>
+                      <th>신뢰도</th>
+                      <th>근거 문장</th>
+                    </tr>
+                  </thead>
+                  <tbody id="videoRows"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="right-col">
+              <section class="panel">
+                <div class="panel-head">
+                  <h2>도서 영향 랭킹</h2>
+                  <small id="bookCount">0권</small>
+                </div>
+                <div id="bookList" class="book-list"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head">
+                  <h2>선택 도서 상세</h2>
+                  <small>대리 지표</small>
+                </div>
+                <div id="bookDetail" class="detail"></div>
+              </section>
+            </section>
+          </section>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const today = (() => {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      return date;
+    })();
+    const YOUTUBE_API_KEY = "AIzaSyCULJ_71f4ZnBh3JekDBR1SL_hxoUCWRdE";
+
+    const rawChannels = [
+      ["bookread", "책읽기일기", "https://www.youtube.com/@bookreaddiary_"],
+      ["njt", "너진똑", "https://www.youtube.com/@NJT_BOOK"],
+      ["daisy", "데이지힐", "https://www.youtube.com/@daisyhur"],
+      ["gongbaek_channel", "공백의책단장", "https://www.youtube.com/@gongbaeksbookdressup3399"],
+      ["diana", "다이애나의책장", "https://www.youtube.com/@dianasbookshelf"],
+      ["studian", "스터디언", "https://www.youtube.com/@studian365"],
+      ["mktv", "김미경TV", "https://www.youtube.com/@MKTV"],
+      ["editor_k", "편집자K", "https://www.youtube.com/@essay_u"],
+      ["dadokie", "다독이", "https://www.youtube.com/@dadokie"],
+      ["dokji", "김독지", "https://www.youtube.com/@dokjikim"],
+      ["yebaksa", "예박사", "https://www.youtube.com/@yebaksa"],
+      ["nextchapter", "넥스트챕터", "https://www.youtube.com/@open.nextchapter"],
+      ["readingwoman", "읽는여자", "https://www.youtube.com/@readingwoman"],
+      ["rami", "동그람이", "https://www.youtube.com/@ramiramie827"],
+      ["zizi", "지지프렌즈", "https://www.youtube.com/@zizi_1380"],
+      ["dete", "디에떼", "https://www.youtube.com/@d.ete_book"],
+      ["siyeon", "시연", "https://www.youtube.com/@%EC%8B%9C%ED%98%840617"],
+      ["heavytalker", "하말넘많", "https://www.youtube.com/@heavytalker"],
+      ["april", "쩜", "https://www.youtube.com/@April_ten"],
+      ["novemyy", "노범비", "https://www.youtube.com/@novemyy"],
+      ["laksu", "락서", "https://www.youtube.com/@%EB%9D%BD%EC%84%9C"],
+      ["journey", "오늘도또행복", "https://www.youtube.com/@journey__with"],
+      ["onepercent", "이해성", "https://www.youtube.com/@1percentBookClub"],
+      ["yeoreumi", "여르미도서관", "https://www.youtube.com/@%EC%97%AC%EB%A5%B4%EB%AF%B8%EB%8F%84%EC%84%9C%EA%B4%80"],
+      ["book_life", "책과삶", "https://www.youtube.com/@%EC%B1%85%EA%B3%BC%EC%82%B6"],
+      ["dadokdog", "다독독", "https://www.youtube.com/@dadokdog"],
+      ["geulrin","글린","https://www.youtube.com/@geulrin"]
+    ];
+
+
+
+
+    const bookPool = [
+      { title: "역행자", author: "자청", category: "자기계발", base: 89 },
+      { title: "세이노의 가르침", author: "세이노", category: "자기계발", base: 92 },
+      { title: "불변의 법칙", author: "모건 하우절", category: "경제경영", base: 84 },
+      { title: "도둑맞은 집중력", author: "요한 하리", category: "인문", base: 78 },
+      { title: "Atomic Habits", author: "James Clear", category: "자기계발", base: 86 },
+      { title: "모순", author: "양귀자", category: "소설", base: 73 },
+      { title: "긴긴밤", author: "루리", category: "문학", base: 69 },
+      { title: "나는 메트로폴리탄 미술관의 경비원입니다", author: "패트릭 브링리", category: "에세이", base: 80 },
+      { title: "사피엔스", author: "유발 하라리", category: "인문", base: 76 },
+      { title: "군중심리", author: "귀스타브 르 봉", category: "인문", base: 86 },
+      { title: "원씽", author: "게리 켈러", category: "자기계발", base: 75 },
+      { title: "돈의 심리학", author: "모건 하우절", category: "경제경영", base: 82 },
+      { title: "물고기는 존재하지 않는다", author: "룰루 밀러", category: "과학", base: 71 }
+    ];
+
+    const initialChannels = rawChannels.map((source) => {
+      const [id, name, url] = source;
+      return { id, name, url, subscribers: null, videos: [] };
+    });
+
+    let channels = initialChannels;
+
+    const state = {
+      selectedChannelId: "all",
+      selectedBookTitle: null,
+      parserHasRun: false,
+      parsedAt: null,
+      parseMessage: "",
+      hasFetched: false
+    };
+
+    const els = {
+      search: document.getElementById("searchInput"),
+      period: document.getElementById("periodSelect"),
+      confidence: document.getElementById("confidenceRange"),
+      confidenceText: document.getElementById("confidenceText"),
+      mention: document.getElementById("mentionSelect"),
+      allButton: document.getElementById("allButton"),
+      fetchButton: document.getElementById("fetchButton"),
+      transcriptButton: document.getElementById("transcriptButton"),
+      browserTranscriptButton: document.getElementById("browserTranscriptButton"),
+      productButton: document.getElementById("productButton"),
+      mockButton: document.getElementById("mockButton"),
+      parseButton: document.getElementById("parseButton"),
+      channelList: document.getElementById("channelList"),
+      videoRows: document.getElementById("videoRows"),
+      bookList: document.getElementById("bookList"),
+      bookDetail: document.getElementById("bookDetail"),
+      workProgress: document.getElementById("workProgress"),
+      workProgressText: document.getElementById("workProgressText")
+    };
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat("ko-KR").format(value);
+    }
+
+    function formatCompact(value) {
+      return new Intl.NumberFormat("ko-KR", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+    }
+
+    function daysBetween(dateText) {
+      return Math.floor((today - new Date(`${dateText}T00:00:00+09:00`)) / 86400000);
+    }
+
+    function getSelectedPeriodDays() {
+      return Number(els.period.value || 1);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function setParseStatus(message) {
+      state.parseMessage = message;
+      document.getElementById("parseStatus").textContent = message;
+      if (els.workProgressText && message) {
+        els.workProgressText.textContent = message;
+      }
+    }
+
+    function setWorking(isWorking, message = "") {
+      state.isWorking = isWorking;
+      if (message) setParseStatus(message);
+      els.workProgress?.classList.toggle("active", isWorking);
+    }
+
+    async function youtubeApi(path, params, apiKey) {
+      const url = new URL(`https://www.googleapis.com/youtube/v3/${path}`);
+      Object.entries({ ...params, key: apiKey }).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          url.searchParams.set(key, value);
+        }
+      });
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) {
+        const message = data?.error?.message || "YouTube API 요청에 실패했습니다.";
+        throw new Error(message);
+      }
+      return data;
+    }
+
+    function parseChannelUrl(sourceUrl) {
+      const url = new URL(sourceUrl);
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (url.pathname === "/watch" && url.searchParams.get("v")) {
+        return { type: "video", videoId: url.searchParams.get("v") };
+      }
+      if (parts[0] === "channel" && parts[1]) {
+        return { type: "channelId", channelId: parts[1] };
+      }
+      if (parts[0]?.startsWith("@")) {
+        return { type: "handle", handle: decodeURIComponent(parts[0]) };
+      }
+      return { type: "unknown" };
+    }
+
+    async function resolveChannel(source, apiKey) {
+      const [fallbackId, fallbackName, sourceUrl] = source;
+      const parsed = parseChannelUrl(sourceUrl);
+      let channel;
+
+      if (parsed.type === "video") {
+        const videoData = await youtubeApi("videos", {
+          part: "snippet",
+          id: parsed.videoId,
+          maxResults: 1
+        }, apiKey);
+        const channelId = videoData.items?.[0]?.snippet?.channelId;
+        if (!channelId) throw new Error(`${fallbackName}: 영상에서 채널을 찾지 못했습니다.`);
+        const channelData = await youtubeApi("channels", {
+          part: "id,snippet,contentDetails,statistics",
+          id: channelId,
+          maxResults: 1
+        }, apiKey);
+        channel = channelData.items?.[0];
+      }
+
+      if (parsed.type === "channelId") {
+        const channelData = await youtubeApi("channels", {
+          part: "id,snippet,contentDetails,statistics",
+          id: parsed.channelId,
+          maxResults: 1
+        }, apiKey);
+        channel = channelData.items?.[0];
+      }
+
+      if (parsed.type === "handle") {
+        let channelData = await youtubeApi("channels", {
+          part: "id,snippet,contentDetails,statistics",
+          forHandle: parsed.handle,
+          maxResults: 1
+        }, apiKey);
+        if (!channelData.items?.length && parsed.handle.startsWith("@")) {
+          channelData = await youtubeApi("channels", {
+            part: "id,snippet,contentDetails,statistics",
+            forHandle: parsed.handle.slice(1),
+            maxResults: 1
+          }, apiKey);
+        }
+        channel = channelData.items?.[0];
+      }
+
+      if (!channel) throw new Error(`${fallbackName}: 채널 URL을 확인하지 못했습니다.`);
+      return {
+        id: channel.id || fallbackId,
+        sourceId: fallbackId,
+        name: channel.snippet?.title || fallbackName,
+        url: sourceUrl,
+        subscribers: Number(channel.statistics?.subscriberCount || 0),
+        uploadsPlaylistId: channel.contentDetails?.relatedPlaylists?.uploads
+      };
+    }
+
+    function normalizeBookTitle(value) {
+      return value
+        .replace(/https?:\/\/\S+/g, "")
+        .replace(/[📚📖👉▶️✅✔️⭐★※#]/g, " ")
+        .replace(/\s+/g, " ")
+        .replace(/^[\s\-–—_:;,.()[\]{}'"“”‘’]+|[\s\-–—_:;,.()[\]{}'"“”‘’]+$/g, "")
+        .trim();
+    }
+
+    function isLikelyBookTitle(value) {
+      const title = normalizeBookTitle(value);
+      if (title.length < 2 || title.length > 45) return false;
+      if (!/[가-힣A-Za-z0-9]/.test(title)) return false;
+      if (/구독|좋아요|댓글|알림|이벤트|협찬|광고|구매|링크|인스타|블로그|카페|출판사|문의|타임라인|목차|오늘의|영상|소개|추천|리뷰|서평|채널|shorts/i.test(title)) return false;
+      if (isNonBookReference(title)) return false;
+      if (/^\d{1,2}:\d{2}/.test(title)) return false;
+      return true;
+    }
+
+    function isNonBookReference(value) {
+      return /audio\s+podcast|podcast\s+episode|podcast|episode|journal|article|paper|study|research|doi\b|pmid\b|arxiv|conference|lecture|webpage|website|newsletter|magazine|newspaper|youtube|ted\s*talk|interview|논문|학술지|저널|기사|뉴스|팟캐스트|오디오|에피소드|강연|인터뷰|웹문서|웹사이트|자료|참고문헌|출처/i.test(value);
+    }
+
+    function isReferenceSectionHeader(value) {
+      return /참고\s*(문헌|자료)|reference|references|source|sources|citation|citations|bibliography/i.test(value);
+    }
+
+    function addBookCandidate(map, title, author, confidence, evidence, source) {
+      const cleanTitle = normalizeBookTitle(title);
+      const cleanAuthor = normalizeBookTitle(author || "");
+      if (!isLikelyBookTitle(cleanTitle)) return;
+      const key = cleanTitle.toLowerCase();
+      const existing = map.get(key);
+      const candidate = {
+        title: cleanTitle,
+        author: cleanAuthor || "미확인",
+        category: source === "known" ? "등록 도서" : "설명 추출",
+        base: source === "known" ? 82 : 62,
+        confidence,
+        evidence,
+        source
+      };
+      if (!existing || existing.confidence < confidence) {
+        map.set(key, candidate);
+      }
+    }
+
+    function detectBooksFromText(titleText, descriptionText) {
+      const text = `${titleText || ""}\n${descriptionText || ""}`;
+      const normalized = text.toLowerCase();
+      const candidates = new Map();
+      const rawLines = text.split(/\r?\n/);
+      const referenceRawIndex = rawLines.findIndex(line => isReferenceSectionHeader(normalizeBookTitle(line)));
+      const primaryText = referenceRawIndex >= 0 ? rawLines.slice(0, referenceRawIndex).join("\n") : text;
+
+      bookPool.forEach(book => {
+        if (normalized.includes(book.title.toLowerCase()) || normalized.includes(book.author.toLowerCase())) {
+          addBookCandidate(candidates, book.title, book.author, 94, `등록 도서 사전에서 "${book.title}"을 감지했습니다.`, "known");
+        }
+      });
+
+      const bracketPatterns = [
+        /[『《<「\[]([^『』《》<>「」[\]\n]{2,45})[』》>」\]]/g,
+        /["“']([^"“”'\n]{2,45})["”']/g
+      ];
+      bracketPatterns.forEach(pattern => {
+        for (const match of primaryText.matchAll(pattern)) {
+          if (isNonBookReference(match[1])) continue;
+          addBookCandidate(candidates, match[1], "", 86, `괄호/인용부호 안의 도서명 후보 "${normalizeBookTitle(match[1])}"을 감지했습니다.`, "description");
+        }
+      });
+
+      const lines = rawLines
+        .map((raw, index) => ({ raw, text: normalizeBookTitle(raw), index }))
+        .filter(line => line.text);
+      const referenceStartIndex = lines.find(line => isReferenceSectionHeader(line.text))?.index ?? Infinity;
+      const visibleLines = lines
+        .filter(line => line.index < referenceStartIndex || /책|도서|book|isbn|저자|지은이|author/i.test(line.text))
+        .filter(line => !isNonBookReference(line.text))
+        .map(line => line.text)
+        .filter(Boolean);
+
+      visibleLines.forEach(line => {
+        const labelMatch = line.match(/(?:도서명|책\s*제목|책|도서|읽은\s*책|소개\s*도서|추천\s*도서)\s*[:：]\s*(.+)$/i);
+        if (labelMatch) {
+          addBookCandidate(candidates, labelMatch[1], "", 84, `설명란의 도서 라벨에서 "${normalizeBookTitle(labelMatch[1])}"을 감지했습니다.`, "description");
+        }
+
+        const linkTitleMatch = line.match(/^(.{2,45}?)\s*[:：]\s*https?:\/\//i);
+        if (linkTitleMatch) {
+          addBookCandidate(candidates, linkTitleMatch[1], "", 76, `도서 링크 앞의 제목 후보 "${normalizeBookTitle(linkTitleMatch[1])}"을 감지했습니다.`, "description");
+        }
+
+        const bulletMatch = line.match(/^[\-*•·]\s*(.{2,45})$/);
+        if (bulletMatch) {
+          addBookCandidate(candidates, bulletMatch[1], "", 72, `불릿 목록에서 "${normalizeBookTitle(bulletMatch[1])}"을 도서 후보로 감지했습니다.`, "description");
+        }
+
+        const authorMatch = line.match(/^(.{2,45}?)\s*(?:-|–|—|\||\/|,)\s*(?:저자|지은이|글)?\s*([가-힣A-Za-z .]{2,25})(?:\s*(?:저|지음|작가))?$/);
+        if (authorMatch) {
+          addBookCandidate(candidates, authorMatch[1], authorMatch[2], 78, `제목-저자 형태의 설명 문장에서 "${normalizeBookTitle(authorMatch[1])}"을 감지했습니다.`, "description");
+        }
+
+        const numberedMatch = line.match(/^\d{1,2}[).]\s*(.{2,45})$/);
+        if (numberedMatch) {
+          addBookCandidate(candidates, numberedMatch[1], "", 70, `번호 목록에서 "${normalizeBookTitle(numberedMatch[1])}"을 도서 후보로 감지했습니다.`, "description");
+        }
+      });
+
+      visibleLines.forEach((line, index) => {
+        if (!/(소개한|추천한|읽은|언급한|오늘의).{0,8}(책|도서)|책\s*정보|도서\s*정보|book/i.test(line)) return;
+        visibleLines.slice(index + 1, index + 9).forEach(candidateLine => {
+          if (/https?:\/\/|구독|좋아요|댓글|문의|인스타|타임라인/i.test(candidateLine) || isNonBookReference(candidateLine)) return;
+          const cleaned = candidateLine.replace(/^[\-*•·\d). ]+/, "");
+          addBookCandidate(candidates, cleaned, "", 72, `도서 정보 섹션에서 "${normalizeBookTitle(cleaned)}"을 후보로 감지했습니다.`, "description");
+        });
+      });
+
+      return Array.from(candidates.values()).slice(0, 8);
+    }
+
+    async function fetchRecentVideosForChannel(channel, apiKey, periodDays) {
+      if (!channel.uploadsPlaylistId) return [];
+      const cutoff = new Date(today);
+      cutoff.setDate(today.getDate() - periodDays);
+      let pageToken = "";
+      let ids = [];
+      let keepGoing = true;
+
+      while (keepGoing && ids.length < 100) {
+        const playlistData = await youtubeApi("playlistItems", {
+          part: "snippet,contentDetails",
+          playlistId: channel.uploadsPlaylistId,
+          maxResults: 50,
+          pageToken
+        }, apiKey);
+        const items = playlistData.items || [];
+        for (const item of items) {
+          const published = new Date(item.contentDetails?.videoPublishedAt || item.snippet?.publishedAt);
+          if (published >= cutoff) {
+            ids.push(item.contentDetails.videoId);
+          } else {
+            keepGoing = false;
+          }
+        }
+        pageToken = playlistData.nextPageToken || "";
+        if (!pageToken || !items.length) keepGoing = false;
+      }
+
+      if (!ids.length) return [];
+      const videoItems = [];
+      for (let start = 0; start < ids.length; start += 50) {
+        const videoData = await youtubeApi("videos", {
+          part: "snippet,statistics",
+          id: ids.slice(start, start + 50).join(","),
+          maxResults: 50
+        }, apiKey);
+        videoItems.push(...(videoData.items || []));
+      }
+
+      return videoItems.map(item => {
+        const books = detectBooksFromText(item.snippet?.title || "", item.snippet?.description || "");
+        const confidence = books.length
+          ? Math.max(...books.map(book => book.confidence || 70))
+          : 0;
+        return {
+          id: item.id,
+          title: item.snippet?.title || "제목 없음",
+          description: item.snippet?.description || "",
+          publishedAt: (item.snippet?.publishedAt || "").slice(0, 10),
+          views: Number(item.statistics?.viewCount || 0),
+          confidence,
+          sourceUrl: `https://www.youtube.com/watch?v=${item.id}`,
+          youtubeUrl: `https://www.youtube.com/watch?v=${item.id}`,
+          parseStatus: "queued",
+          transcriptText: "",
+          transcriptApiStatus: "not-requested",
+          transcriptStatus: "not-requested",
+          browserTranscriptStatus: "not-requested",
+          productTags: [],
+          productStatus: "not-requested",
+          books,
+          quote: books.length
+            ? books[0].evidence
+            : "제목/설명에서 도서명으로 보이는 패턴을 찾지 못했습니다."
+        };
+      });
+    }
+
+    function getSelectedChannelSources() {
+      if (state.selectedChannelId === "all") return rawChannels;
+      const selected = channels.find(channel => channel.id === state.selectedChannelId);
+      if (!selected) return rawChannels;
+      return rawChannels.filter(source => source[0] === selected.sourceId || source[0] === selected.id || source[2] === selected.url || source[1] === selected.name);
+    }
+
+    function mergeFetchedChannel(fetchedChannel) {
+      const index = channels.findIndex(channel =>
+        channel.id === fetchedChannel.id ||
+        channel.sourceId === fetchedChannel.sourceId ||
+        channel.url === fetchedChannel.url
+      );
+      if (index >= 0) {
+        channels = channels.map((channel, currentIndex) =>
+          currentIndex === index
+            ? {
+              ...channel,
+              ...fetchedChannel,
+              id: channel.id,
+              sourceId: channel.sourceId || fetchedChannel.sourceId,
+              youtubeChannelId: fetchedChannel.id
+            }
+            : channel
+        );
+      } else {
+        channels = [...channels, fetchedChannel];
+      }
+    }
+
+    async function fetchRealYoutubeData(options = {}) {
+      const apiKey = YOUTUBE_API_KEY.trim();
+      if (!apiKey) {
+        setParseStatus("HTML 파일의 YOUTUBE_API_KEY 값을 입력한 뒤 다시 실행해주세요.");
+        return;
+      }
+
+      const sourceChannels = options.sources || getSelectedChannelSources();
+      const isScoped = sourceChannels.length !== rawChannels.length;
+      const previousSelectedChannelId = state.selectedChannelId;
+      els.fetchButton.disabled = true;
+      els.fetchButton.textContent = "수집 중";
+      setWorking(true, "실제 API 수집을 시작합니다.");
+      const periodDays = getSelectedPeriodDays();
+      setParseStatus(isScoped
+        ? `선택한 유튜버 1개를 기준으로 최근 ${periodDays}일 영상을 수집합니다.`
+        : "채널 URL을 채널 ID와 업로드 플레이리스트로 정규화하는 중입니다.");
+
+      try {
+        const liveChannels = [];
+        const seen = new Set();
+        const errors = [];
+        let totalVideos = 0;
+
+        for (let index = 0; index < sourceChannels.length; index += 1) {
+          const source = sourceChannels[index];
+          try {
+            setParseStatus(`${index + 1}/${sourceChannels.length} ${source[1]} 채널을 확인하는 중입니다.`);
+            const channel = await resolveChannel(source, apiKey);
+            if (seen.has(channel.id)) continue;
+            seen.add(channel.id);
+            setParseStatus(`${channel.name}의 최근 ${periodDays}일 업로드 영상을 수집하는 중입니다.`);
+            const videos = await fetchRecentVideosForChannel(channel, apiKey, periodDays);
+            totalVideos += videos.length;
+            const fetchedChannel = { ...channel, videos };
+            liveChannels.push(fetchedChannel);
+            mergeFetchedChannel(fetchedChannel);
+            render();
+          } catch (channelError) {
+            errors.push(`${source[1]}: ${channelError.message}`);
+          }
+        }
+
+        state.selectedChannelId = previousSelectedChannelId;
+        state.selectedBookTitle = null;
+        state.parserHasRun = true;
+        state.hasFetched = true;
+        state.parsedAt = new Intl.DateTimeFormat("ko-KR", {
+          dateStyle: "short",
+          timeStyle: "short"
+        }).format(new Date());
+        const errorText = errors.length ? ` 실패 ${errors.length}개 채널.` : "";
+        setParseStatus(`실제 API 수집 완료: ${liveChannels.length}개 채널, ${totalVideos}개 영상을 파싱 큐에 반영했습니다.${errorText}`);
+        render();
+      } catch (error) {
+        setParseStatus(`수집 실패: ${error.message}`);
+      } finally {
+        els.fetchButton.disabled = false;
+        els.fetchButton.textContent = "실제 API 수집";
+        if (!state.isBatchWorking) setWorking(false);
+      }
+    }
+
+    function getAllVideos() {
+      return channels.flatMap(channel => channel.videos.map(video => ({ video, channel })));
+    }
+
+    function getSelectedVideoRefs() {
+      const refs = getAllVideos();
+      if (state.selectedChannelId === "all") return refs;
+      return refs.filter(({ channel }) => channel.id === state.selectedChannelId);
+    }
+
+    async function fetchTranscript(videoId) {
+      const response = await fetch(`http://127.0.0.1:8787/api/transcript/${encodeURIComponent(videoId)}`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "자막 수집에 실패했습니다.");
+      }
+      return data;
+    }
+
+    async function fetchProductTags(videoId) {
+      const response = await fetch(`http://127.0.0.1:8787/api/product-tags/${encodeURIComponent(videoId)}`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "제품 태그 수집에 실패했습니다.");
+      }
+      return data;
+    }
+
+    async function fetchBrowserTranscript(videoId) {
+      const response = await fetch(`http://127.0.0.1:8787/api/browser-transcript/${encodeURIComponent(videoId)}`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "브라우저 스크립트 수집에 실패했습니다.");
+      }
+      return data;
+    }
+
+    function productTagToBook(product) {
+      const rawTitle = product.title || "";
+      const known = bookPool.find(book => rawTitle.toLowerCase().includes(book.title.toLowerCase()));
+      if (known) {
+        return {
+          ...known,
+          confidence: 98,
+          category: "제품 태그",
+          evidence: `YouTube 제품 패널에서 "${product.title}" 상품을 감지했습니다.`,
+          source: "product_tag",
+          priceText: product.priceText || ""
+        };
+      }
+
+      return {
+        title: rawTitle,
+        author: "미확인",
+        category: "제품 태그",
+        base: 84,
+        confidence: 92,
+        evidence: `YouTube 제품 패널에서 "${product.title}" 상품을 감지했습니다.`,
+        source: "product_tag",
+        priceText: product.priceText || ""
+      };
+    }
+
+    function mergeBookCandidates(existingBooks, newBooks) {
+      const map = new Map();
+      [...existingBooks, ...newBooks].forEach(book => {
+        const key = book.title.toLowerCase();
+        const existing = map.get(key);
+        if (!existing || (book.confidence || 0) > (existing.confidence || 0)) {
+          map.set(key, book);
+        }
+      });
+      return Array.from(map.values());
+    }
+
+    function refreshVideoBookAnalysis(video, label) {
+      const books = detectBooksFromText(video.title, `${video.description || ""}\n${video.transcriptText || ""}`);
+      video.books = mergeBookCandidates(video.books || [], books);
+      video.confidence = video.books.length ? Math.max(...video.books.map(book => book.confidence || 70)) : 0;
+      video.quote = video.books.length
+        ? `${label}: ${video.books[0].evidence}`
+        : video.quote;
+    }
+
+    function applyTranscriptToVideo(video, transcript, label) {
+      const isBrowser = label.includes("브라우저");
+      video.transcriptText = transcript.text || "";
+      video.transcriptLanguage = transcript.language || "";
+      video.transcriptTrackName = transcript.name || "";
+      video.transcriptReason = transcript.reason || "";
+      if (video.transcriptText) {
+        if (isBrowser) {
+          video.browserTranscriptStatus = "available";
+        } else {
+          video.transcriptApiStatus = "available";
+        }
+        video.transcriptStatus = "available";
+        refreshVideoBookAnalysis(video, label);
+        return true;
+      }
+      const nextStatus = (() => {
+        if (transcript.status === "empty") return "empty";
+        if (transcript.status === "button_only") return "button-only";
+        return "unavailable";
+      })();
+      if (isBrowser) {
+        video.browserTranscriptStatus = nextStatus;
+      } else {
+        video.transcriptApiStatus = nextStatus;
+      }
+      if (transcript.status === "empty") {
+        video.transcriptStatus = "empty";
+      } else if (transcript.status === "button_only") {
+        video.transcriptStatus = "browser-button-only";
+      } else {
+        video.transcriptStatus = label.includes("브라우저") ? "browser-unavailable" : "unavailable";
+      }
+      return false;
+    }
+
+    function applyProductTagsToVideo(video, result) {
+      video.productTags = result.products || [];
+      video.productStatus = video.productTags.length ? "available" : "unavailable";
+      if (!video.productTags.length) return false;
+      const productBooks = video.productTags.map(productTagToBook).filter(book => book.title);
+      video.books = mergeBookCandidates(video.books || [], productBooks);
+      video.confidence = video.books.length ? Math.max(...video.books.map(book => book.confidence || 70)) : 0;
+      video.quote = productBooks.length ? productBooks[0].evidence : video.quote;
+      return true;
+    }
+
+    async function runWithConcurrency(items, limit, worker, onProgress) {
+      let cursor = 0;
+      let done = 0;
+      const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+        while (cursor < items.length) {
+          const currentIndex = cursor;
+          cursor += 1;
+          await worker(items[currentIndex], currentIndex);
+          done += 1;
+          onProgress?.(done, items.length);
+        }
+      });
+      await Promise.all(workers);
+    }
+
+    function setCollectionButtonsDisabled(disabled) {
+      [els.allButton, els.fetchButton, els.transcriptButton, els.browserTranscriptButton, els.productButton, els.mockButton, els.parseButton]
+        .filter(Boolean)
+        .forEach(button => {
+          button.disabled = disabled;
+        });
+    }
+
+    function shouldTryBrowserTranscript(video) {
+      if (video.transcriptStatus === "available") return false;
+      const text = `${video.title || ""}\n${video.description || ""}`.toLowerCase();
+      return video.books.length > 0 || /책|도서|소설|작품|추천|읽|저자|출판|book|novel/.test(text);
+    }
+
+    async function collectEverythingFast() {
+      state.isBatchWorking = true;
+      setCollectionButtonsDisabled(true);
+      setWorking(true, "통합 수집을 시작합니다.");
+      els.allButton.textContent = "통합 수집 중";
+      try {
+        await fetchRealYoutubeData();
+        setCollectionButtonsDisabled(true);
+        els.allButton.textContent = "통합 수집 중";
+        if (!state.hasFetched) return;
+
+        const videoRefs = getSelectedVideoRefs();
+        if (!videoRefs.length) {
+          setParseStatus("선택 기간 안에 수집된 영상이 없습니다.");
+          return;
+        }
+
+        setParseStatus(`빠른 수집 1단계: ${videoRefs.length}개 영상의 자막 API와 제품 태그를 병렬로 확인합니다.`);
+        await runWithConcurrency(videoRefs, 4, async ({ video }) => {
+          video.transcriptStatus = video.transcriptStatus === "available" ? "available" : "fetching";
+          video.transcriptApiStatus = video.transcriptApiStatus === "available" ? "available" : "fetching";
+          video.productStatus = video.productStatus === "available" ? "available" : "fetching";
+          render();
+
+          const [transcriptResult, productResult] = await Promise.allSettled([
+            video.transcriptStatus === "available" ? Promise.resolve(null) : fetchTranscript(video.id),
+            video.productStatus === "available" ? Promise.resolve(null) : fetchProductTags(video.id)
+          ]);
+
+          if (transcriptResult.status === "fulfilled" && transcriptResult.value) {
+            applyTranscriptToVideo(video, transcriptResult.value, "자막/설명 분석");
+          } else if (transcriptResult.status === "rejected") {
+            video.transcriptApiStatus = "error";
+            video.transcriptStatus = "error";
+            video.transcriptError = transcriptResult.reason?.message || "자막 수집 실패";
+          }
+
+          if (productResult.status === "fulfilled" && productResult.value) {
+            applyProductTagsToVideo(video, productResult.value);
+          } else if (productResult.status === "rejected") {
+            video.productStatus = "error";
+            video.productError = productResult.reason?.message || "제품 태그 수집 실패";
+          }
+        }, (done, total) => {
+          state.parseMessage = `빠른 수집 1단계 진행 중: ${done}/${total}개 영상 처리`;
+          render();
+        });
+
+        const browserTargets = getSelectedVideoRefs().filter(({ video }) => shouldTryBrowserTranscript(video));
+        let browserAvailable = 0;
+        if (browserTargets.length) {
+          setParseStatus(`빠른 수집 2단계: 자막이 비어 있는 ${browserTargets.length}개 영상만 브라우저 스크립트로 보완합니다.`);
+          for (let index = 0; index < browserTargets.length; index += 1) {
+            const { video, channel } = browserTargets[index];
+            video.transcriptStatus = "browser-fetching";
+            video.browserTranscriptStatus = "fetching";
+            state.parseMessage = `브라우저 보완 중: ${index + 1}/${browserTargets.length} ${channel.name}`;
+            render();
+            try {
+              const transcript = await fetchBrowserTranscript(video.id);
+              if (applyTranscriptToVideo(video, transcript, "브라우저 스크립트 분석")) {
+                browserAvailable += 1;
+              }
+            } catch (error) {
+              video.browserTranscriptStatus = "error";
+              video.transcriptStatus = "browser-error";
+              video.transcriptError = error.message;
+            }
+          }
+        }
+
+        state.parserHasRun = true;
+        state.parsedAt = new Intl.DateTimeFormat("ko-KR", {
+          dateStyle: "short",
+          timeStyle: "short"
+        }).format(new Date());
+        const transcriptCount = getSelectedVideoRefs().filter(({ video }) => video.transcriptStatus === "available").length;
+        const productCount = getSelectedVideoRefs().filter(({ video }) => video.productStatus === "available").length;
+        setParseStatus(`통합 수집 완료: 영상 ${videoRefs.length}개, 자막 확보 ${transcriptCount}개, 제품 태그 ${productCount}개, 브라우저 보완 ${browserAvailable}개.`);
+        render();
+      } finally {
+        setCollectionButtonsDisabled(false);
+        state.isBatchWorking = false;
+        setWorking(false);
+        els.allButton.textContent = "통합 수집";
+      }
+    }
+
+    async function collectTranscriptsForVideos() {
+      if (!state.hasFetched) {
+        state.parseMessage = "먼저 실제 API 수집을 실행해주세요. 수집된 영상이 있어야 자막을 가져올 수 있습니다.";
+        render();
+        return;
+      }
+
+      const videoRefs = getAllVideos().filter(({ video }) => video.transcriptStatus !== "available");
+      if (!videoRefs.length) {
+        state.parseMessage = "이미 모든 수집 영상의 자막 수집을 시도했습니다.";
+        render();
+        return;
+      }
+
+      els.transcriptButton.disabled = true;
+      els.transcriptButton.textContent = "자막 수집 중";
+      setWorking(true, "자막 API 수집을 시작합니다.");
+
+      let availableCount = 0;
+      let unavailableCount = 0;
+      for (let index = 0; index < videoRefs.length; index += 1) {
+        const { video, channel } = videoRefs[index];
+        video.transcriptStatus = "fetching";
+        video.transcriptApiStatus = "fetching";
+        state.parseMessage = `${index + 1}/${videoRefs.length} ${channel.name} 영상 자막을 수집하는 중입니다.`;
+        render();
+
+        try {
+          const transcript = await fetchTranscript(video.id);
+          video.transcriptText = transcript.text || "";
+          video.transcriptStatus = video.transcriptText ? "available" : (transcript.status === "empty" ? "empty" : "unavailable");
+          video.transcriptApiStatus = video.transcriptText ? "available" : (transcript.status === "empty" ? "empty" : "unavailable");
+          video.transcriptLanguage = transcript.language || "";
+          video.transcriptTrackName = transcript.name || "";
+          video.transcriptReason = transcript.reason || "";
+          if (video.transcriptText) {
+            const books = detectBooksFromText(video.title, `${video.description || ""}\n${video.transcriptText}`);
+            video.books = books;
+            video.confidence = books.length ? Math.max(...books.map(book => book.confidence || 70)) : 0;
+            video.quote = books.length
+              ? `자막/설명 분석: ${books[0].evidence}`
+              : "자막까지 확인했지만 도서명으로 보이는 패턴을 찾지 못했습니다.";
+            availableCount += 1;
+          } else {
+            unavailableCount += 1;
+          }
+        } catch (error) {
+          video.transcriptStatus = "error";
+          video.transcriptApiStatus = "error";
+          video.transcriptError = error.message;
+          unavailableCount += 1;
+        }
+      }
+
+      state.parserHasRun = true;
+      state.parsedAt = new Intl.DateTimeFormat("ko-KR", {
+        dateStyle: "short",
+        timeStyle: "short"
+      }).format(new Date());
+      state.parseMessage = `자막 수집 완료: ${availableCount}개 확보, ${unavailableCount}개 미확보.`;
+      els.transcriptButton.disabled = false;
+      els.transcriptButton.textContent = "자막 수집";
+      setWorking(false);
+      render();
+    }
+
+    async function collectProductTagsForVideos() {
+      if (!state.hasFetched) {
+        state.parseMessage = "먼저 실제 API 수집을 실행해주세요. 수집된 영상이 있어야 제품 태그를 가져올 수 있습니다.";
+        render();
+        return;
+      }
+
+      const videoRefs = getAllVideos().filter(({ video }) => video.productStatus !== "available");
+      if (!videoRefs.length) {
+        state.parseMessage = "이미 모든 수집 영상의 제품 태그 수집을 시도했습니다.";
+        render();
+        return;
+      }
+
+      els.productButton.disabled = true;
+      els.productButton.textContent = "제품 수집 중";
+      setWorking(true, "제품 태그 수집을 시작합니다.");
+
+      let availableCount = 0;
+      let unavailableCount = 0;
+      for (let index = 0; index < videoRefs.length; index += 1) {
+        const { video, channel } = videoRefs[index];
+        video.productStatus = "fetching";
+        state.parseMessage = `${index + 1}/${videoRefs.length} ${channel.name} 영상 제품 태그를 수집하는 중입니다.`;
+        render();
+
+        try {
+          const result = await fetchProductTags(video.id);
+          video.productTags = result.products || [];
+          video.productStatus = video.productTags.length ? "available" : "unavailable";
+
+          if (video.productTags.length) {
+            const productBooks = video.productTags.map(productTagToBook).filter(book => book.title);
+            video.books = mergeBookCandidates(video.books || [], productBooks);
+            video.confidence = video.books.length ? Math.max(...video.books.map(book => book.confidence || 70)) : 0;
+            video.quote = productBooks.length
+              ? productBooks[0].evidence
+              : video.quote;
+            availableCount += 1;
+          } else {
+            unavailableCount += 1;
+          }
+        } catch (error) {
+          video.productStatus = "error";
+          video.productError = error.message;
+          unavailableCount += 1;
+        }
+      }
+
+      state.parserHasRun = true;
+      state.parsedAt = new Intl.DateTimeFormat("ko-KR", {
+        dateStyle: "short",
+        timeStyle: "short"
+      }).format(new Date());
+      state.parseMessage = `제품 태그 수집 완료: ${availableCount}개 영상에서 제품 태그 감지, ${unavailableCount}개 미감지.`;
+      els.productButton.disabled = false;
+      els.productButton.textContent = "제품 태그 수집";
+      setWorking(false);
+      render();
+    }
+
+    async function collectBrowserTranscriptsForVideos() {
+      if (!state.hasFetched) {
+        state.parseMessage = "먼저 실제 API 수집을 실행해주세요. 수집된 영상이 있어야 브라우저 스크립트를 가져올 수 있습니다.";
+        render();
+        return;
+      }
+
+      const videoRefs = getAllVideos().filter(({ video }) => video.transcriptStatus !== "available");
+      if (!videoRefs.length) {
+        state.parseMessage = "브라우저 스크립트 수집이 필요한 영상이 없습니다.";
+        render();
+        return;
+      }
+
+      els.browserTranscriptButton.disabled = true;
+      els.browserTranscriptButton.textContent = "브라우저 수집 중";
+      setWorking(true, "브라우저 스크립트 수집을 시작합니다.");
+
+      let availableCount = 0;
+      let unavailableCount = 0;
+      for (let index = 0; index < videoRefs.length; index += 1) {
+        const { video, channel } = videoRefs[index];
+        video.transcriptStatus = "browser-fetching";
+        video.browserTranscriptStatus = "fetching";
+        state.parseMessage = `${index + 1}/${videoRefs.length} ${channel.name} 영상 스크립트를 브라우저로 수집하는 중입니다.`;
+        render();
+
+        try {
+          const transcript = await fetchBrowserTranscript(video.id);
+          video.transcriptText = transcript.text || "";
+          video.transcriptStatus = video.transcriptText ? "available" : (transcript.status === "button_only" ? "browser-button-only" : "browser-unavailable");
+          video.browserTranscriptStatus = video.transcriptText ? "available" : (transcript.status === "button_only" ? "button-only" : "unavailable");
+          video.transcriptLanguage = transcript.language || "";
+          if (video.transcriptText) {
+            const books = detectBooksFromText(video.title, `${video.description || ""}\n${video.transcriptText}`);
+            video.books = books;
+            video.confidence = books.length ? Math.max(...books.map(book => book.confidence || 70)) : 0;
+            video.quote = books.length
+              ? `브라우저 스크립트 분석: ${books[0].evidence}`
+              : "브라우저 스크립트까지 확인했지만 도서명으로 보이는 패턴을 찾지 못했습니다.";
+            availableCount += 1;
+          } else {
+            unavailableCount += 1;
+          }
+        } catch (error) {
+          video.transcriptStatus = "browser-error";
+          video.browserTranscriptStatus = "error";
+          video.transcriptError = error.message;
+          unavailableCount += 1;
+        }
+      }
+
+      state.parserHasRun = true;
+      state.parsedAt = new Intl.DateTimeFormat("ko-KR", {
+        dateStyle: "short",
+        timeStyle: "short"
+      }).format(new Date());
+      state.parseMessage = `브라우저 스크립트 수집 완료: ${availableCount}개 확보, ${unavailableCount}개 미확보.`;
+      els.browserTranscriptButton.disabled = false;
+      els.browserTranscriptButton.textContent = "브라우저 스크립트 수집";
+      setWorking(false);
+      render();
+    }
+
+    function getFilteredVideos() {
+      const q = els.search.value.trim().toLowerCase();
+      const period = Number(els.period.value);
+      const minConfidence = Number(els.confidence.value);
+      const booksOnly = els.mention.value === "books";
+
+      return channels.flatMap(channel => channel.videos.map(video => ({ ...video, channel })))
+        .filter(video => state.selectedChannelId === "all" || video.channel.id === state.selectedChannelId)
+        .filter(video => daysBetween(video.publishedAt) <= period)
+        .filter(video => !booksOnly || video.books.length > 0)
+        .filter(video => video.books.length === 0 || video.confidence >= minConfidence)
+        .filter(video => {
+          if (!q) return true;
+          const haystack = [
+            video.title,
+            video.channel.name,
+            video.quote,
+            ...video.books.flatMap(book => [book.title, book.author, book.category])
+          ].join(" ").toLowerCase();
+          return haystack.includes(q);
+        });
+    }
+
+    function getChannelSummaryVideos() {
+      const period = Number(els.period.value);
+      return channels.flatMap(channel => channel.videos.map(video => ({ ...video, channel })))
+        .filter(video => daysBetween(video.publishedAt) <= period);
+    }
+
+    function getParserCandidates() {
+      return channels.flatMap(channel => channel.videos.map(video => ({ ...video, channel })))
+        .filter(video => state.selectedChannelId === "all" || video.channel.id === state.selectedChannelId)
+        .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+    }
+
+    function getParserStatus(video) {
+      if (video.productStatus === "fetching") return { label: "제품 수집", className: "amber" };
+      if (video.productStatus === "available" && video.books.length) return { label: "제품 태그", className: "green" };
+      if (video.productStatus === "error") return { label: "제품 오류", className: "amber" };
+      if (video.transcriptStatus === "browser-fetching") return { label: "브라우저 수집", className: "amber" };
+      if (video.transcriptStatus === "browser-error") return { label: "브라우저 오류", className: "amber" };
+      if (video.transcriptStatus === "browser-button-only" && !video.books.length) return { label: "스크립트 열기 실패", className: "amber" };
+      if (video.transcriptStatus === "browser-unavailable" && !video.books.length) return { label: "브라우저 수집 실패", className: "amber" };
+      if (video.transcriptStatus === "fetching") return { label: "자막 수집", className: "amber" };
+      if (video.transcriptStatus === "error") return { label: "자막 오류", className: "amber" };
+      if (video.transcriptStatus === "empty" && !video.books.length) return { label: "자막 비어있음", className: "amber" };
+      if (video.transcriptStatus === "unavailable" && !video.books.length) return { label: "자막 없음", className: "" };
+      if (video.transcriptStatus === "available" && video.books.length) return { label: "자막 분석", className: "green" };
+      if (!state.parserHasRun) return { label: "대기", className: "amber" };
+      if (!video.books.length) return { label: "도서 없음", className: "" };
+      if (video.confidence < Number(els.confidence.value)) return { label: "저신뢰", className: "amber" };
+      return { label: "완료", className: "green" };
+    }
+
+    function transcriptStats(text) {
+      const clean = String(text || "").trim();
+      if (!clean) return { chars: 0, lines: 0, preview: "" };
+      const lines = clean.split(/\r?\n/).filter(line => line.trim()).length || 1;
+      return {
+        chars: clean.length,
+        lines,
+        preview: clean.slice(0, 500)
+      };
+    }
+
+    function statusBadge(label, className = "", tooltip = "") {
+      const title = tooltip ? ` title="${escapeHtml(tooltip)}"` : "";
+      return `<span class="badge ${className}"${title}>${escapeHtml(label)}</span>`;
+    }
+
+    function getBookDetectionStatus(video) {
+      if (video.books.length) return { label: "감지", className: "green" };
+      if (video.transcriptStatus === "available" || video.productStatus === "available") return { label: "미감지", className: "" };
+      if (!state.parserHasRun) return { label: "대기", className: "amber" };
+      return { label: "미감지", className: "" };
+    }
+
+    function getTranscriptApiStatus(video) {
+      const apiStatus = video.transcriptApiStatus || video.transcriptStatus || "not-requested";
+      if (apiStatus === "available") {
+        const stats = transcriptStats(video.transcriptText);
+        return {
+          label: `확보 · ${formatNumber(stats.chars)}자`,
+          className: "green",
+          tooltip: `자막 API 수집 미리보기\n${stats.preview}`
+        };
+      }
+      const apiMap = {
+        "not-requested": { label: "대기", className: "" },
+        fetching: { label: "수집 중", className: "amber" },
+        available: { label: "확보", className: "green" },
+        empty: { label: "트랙 비어있음", className: "amber" },
+        unavailable: { label: "없음", className: "" },
+        error: { label: "오류", className: "amber" }
+      };
+      const apiInfo = apiMap[apiStatus] || { label: apiStatus, className: "" };
+      const apiTooltips = {
+        fetching: "YouTube 자막 API를 확인하는 중입니다.",
+        empty: "자막 트랙은 발견됐지만 본문 텍스트가 비어 있습니다.",
+        unavailable: "자막 API로 가져올 수 있는 본문이 없습니다.",
+        error: video.transcriptError || "자막 API 수집 중 오류가 발생했습니다."
+      };
+      return { ...apiInfo, tooltip: apiTooltips[apiStatus] || "" };
+
+      const map = {
+        "not-requested": { label: "대기", className: "" },
+        fetching: { label: "수집 중", className: "amber" },
+        available: { label: "확보", className: "green" },
+        empty: { label: "트랙 비어있음", className: "amber" },
+        unavailable: { label: "없음", className: "" },
+        error: { label: "오류", className: "amber" }
+      };
+      if (["browser-fetching", "browser-button-only", "browser-unavailable", "browser-error"].includes(video.transcriptStatus)) {
+        return video.transcriptText
+          ? { label: "확보", className: "green" }
+          : { label: "실패 후 보완", className: "amber" };
+      }
+      return map[video.transcriptStatus] || { label: video.transcriptStatus || "대기", className: "" };
+    }
+
+    function getBrowserTranscriptStatus(video) {
+      const browserStatus = video.browserTranscriptStatus || "not-requested";
+      if (browserStatus === "available") {
+        const stats = transcriptStats(video.transcriptText);
+        return {
+          label: `확보 · ${formatNumber(stats.lines)}줄`,
+          className: "green",
+          tooltip: `브라우저 스크립트 수집 미리보기\n${stats.preview}`
+        };
+      }
+      const browserMap = {
+        "not-requested": { label: "대기", className: "" },
+        fetching: { label: "수집 중", className: "amber" },
+        available: { label: "확보", className: "green" },
+        unavailable: { label: "실패", className: "amber" },
+        "button-only": { label: "열기 실패", className: "amber" },
+        empty: { label: "비어있음", className: "amber" },
+        error: { label: "오류", className: "amber" }
+      };
+      const browserInfo = browserMap[browserStatus] || { label: browserStatus, className: "" };
+      const browserTooltips = {
+        fetching: "백그라운드 브라우저로 스크립트 패널을 확인하는 중입니다.",
+        unavailable: "브라우저에서 스크립트 본문을 찾지 못했습니다.",
+        "button-only": "스크립트 표시 버튼은 보였지만 본문 패널을 열지 못했습니다.",
+        empty: "브라우저 스크립트 패널은 확인했지만 본문이 비어 있습니다.",
+        error: video.transcriptError || "브라우저 스크립트 수집 중 오류가 발생했습니다."
+      };
+      return { ...browserInfo, tooltip: browserTooltips[browserStatus] || "" };
+
+      if (video.transcriptStatus === "available" && video.transcriptText) return { label: "확보", className: "green" };
+      const map = {
+        "not-requested": { label: "대기", className: "" },
+        fetching: { label: "대기", className: "" },
+        empty: { label: "필요 시 보완", className: "amber" },
+        unavailable: { label: "필요 시 보완", className: "amber" },
+        error: { label: "필요 시 보완", className: "amber" },
+        "browser-fetching": { label: "수집 중", className: "amber" },
+        "browser-button-only": { label: "열기 실패", className: "amber" },
+        "browser-unavailable": { label: "실패", className: "amber" },
+        "browser-error": { label: "오류", className: "amber" }
+      };
+      return map[video.transcriptStatus] || { label: "대기", className: "" };
+    }
+
+    function getProductTagStatus(video) {
+      if (video.productStatus === "available") {
+        const products = video.productTags || [];
+        return {
+          label: products.length ? "감지" : "없음",
+          className: "green",
+          tooltip: ""
+        };
+      }
+      const map = {
+        "not-requested": { label: "대기", className: "" },
+        fetching: { label: "수집 중", className: "amber" },
+        available: { label: `${video.productTags?.length || 0}개`, className: "green" },
+        unavailable: { label: "없음", className: "" },
+        error: { label: "오류", className: "amber" }
+      };
+      const info = map[video.productStatus] || { label: video.productStatus || "대기", className: "" };
+      const tooltips = {
+        fetching: "YouTube 제품 패널을 확인하는 중입니다.",
+        unavailable: "감지된 제품 태그가 없습니다.",
+        error: video.productError || "제품 태그 수집 중 오류가 발생했습니다."
+      };
+      return { ...info, tooltip: tooltips[video.productStatus] || "" };
+    }
+
+    function renderProductTags(video) {
+      if (video.productStatus === "available" && video.productTags?.length) {
+        return `<div class="tag-stack">${video.productTags.map(product => {
+          const title = product.title || "제목 없음";
+          return statusBadge(title, "green", title);
+        }).join("")}</div>`;
+      }
+      const productStatus = getProductTagStatus(video);
+      return statusBadge(productStatus.label, productStatus.className, productStatus.tooltip);
+    }
+
+    function getBookStats(videos) {
+      const map = new Map();
+      for (const video of videos) {
+        for (const book of video.books) {
+          if (!map.has(book.title)) {
+            map.set(book.title, {
+              ...book,
+              mentions: 0,
+              channels: new Set(),
+              views: 0,
+              confidenceSum: 0,
+              videos: []
+            });
+          }
+          const stat = map.get(book.title);
+          stat.mentions += 1;
+          stat.channels.add(video.channel.name);
+          stat.views += video.views;
+          stat.confidenceSum += video.confidence;
+          stat.videos.push(video);
+        }
+      }
+      return Array.from(map.values()).map(stat => {
+        const avgConfidence = stat.confidenceSum / stat.mentions;
+        const base = stat.base || 60;
+        const score = Math.min(99, Math.round(base * 0.42 + avgConfidence * 0.28 + Math.log10(stat.views + 10) * 8 + stat.channels.size * 4));
+        return {
+          ...stat,
+          avgConfidence,
+          score,
+          searchLift: Math.min(96, Math.round(score * 0.72 + stat.mentions * 6)),
+          rankChange: Math.min(88, Math.round(score * 0.55 + stat.channels.size * 5)),
+          reviewLift: Math.min(80, Math.round(score * 0.44 + stat.mentions * 4))
+        };
+      }).sort((a, b) => b.score - a.score);
+    }
+
+    function renderMetrics(videos, books, candidates) {
+      const periodDays = getSelectedPeriodDays();
+      const channelCount = state.selectedChannelId === "all" ? channels.length : 1;
+      document.getElementById("metricParseLabel").textContent = `${periodDays}일 파싱 대상`;
+      document.getElementById("metricChannels").textContent = formatNumber(channelCount);
+      document.getElementById("metricVideos").textContent = formatNumber(videos.length);
+      document.getElementById("metricParseTargets").textContent = formatNumber(candidates.length);
+      document.getElementById("metricMentionVideos").textContent = formatNumber(videos.filter(video => video.books.length).length);
+      document.getElementById("metricBooks").textContent = formatNumber(books.length);
+      document.getElementById("metricViews").textContent = formatCompact(videos.reduce((sum, video) => sum + video.views, 0));
+      document.getElementById("videoCount").textContent = `${formatNumber(videos.length)}개`;
+      document.getElementById("bookCount").textContent = `${formatNumber(books.length)}권`;
+    }
+
+    function renderParser(candidates) {
+      const periodDays = getSelectedPeriodDays();
+      const targetChannels = new Set(candidates.map(video => video.channel.id));
+      const candidateBooks = new Set(candidates.flatMap(video => video.books.map(book => book.title)));
+      const transcriptCount = candidates.filter(video => video.transcriptStatus === "available").length;
+      const productCount = candidates.filter(video => video.productStatus === "available").length;
+      document.getElementById("parseChannels").textContent = formatNumber(targetChannels.size);
+      document.getElementById("parseVideos").textContent = formatNumber(candidates.length);
+      document.getElementById("parseTranscripts").textContent = formatNumber(transcriptCount);
+      document.getElementById("parseProducts").textContent = formatNumber(productCount);
+      document.getElementById("parseBooks").textContent = formatNumber(candidateBooks.size);
+      document.getElementById("parserTitle").textContent = `최근 ${periodDays}일 업로드 분석`;
+      els.parseButton.textContent = state.parserHasRun ? "다시 파싱" : "파싱 실행";
+
+      const status = state.parseMessage || (state.parserHasRun
+        ? `${state.parsedAt} 기준으로 최근 ${periodDays}일 업로드 영상의 제목, 설명, 자막 후보를 파싱한 상태입니다.`
+        : "실제 연결 단계에서는 채널 URL을 채널 ID로 정규화한 뒤, 선택 기간 안에 업로드된 영상만 수집합니다.");
+      document.getElementById("parseStatus").textContent = status;
+    }
+
+    function renderChannels(videos) {
+      const counts = new Map();
+      for (const video of videos) {
+        const current = counts.get(video.channel.id) || { total: 0, mentions: 0, views: 0 };
+        current.total += 1;
+        current.mentions += video.books.length ? 1 : 0;
+        current.views += video.views;
+        counts.set(video.channel.id, current);
+      }
+
+      const rows = [
+        `<button class="channel-item ${state.selectedChannelId === "all" ? "active" : ""}" data-channel-id="all">
+          <div class="channel-main"><span class="channel-name">전체 채널</span><span class="badge">ALL</span></div>
+          <div class="channel-meta"><span>${formatNumber(videos.length)}개 영상</span><span>${formatCompact(videos.reduce((s, v) => s + v.views, 0))} 조회</span></div>
+        </button>`,
+        ...channels.map(channel => {
+          const count = counts.get(channel.id) || { total: 0, mentions: 0, views: 0 };
+          const subscriberText = channel.subscribers === null || channel.subscribers === undefined
+            ? "확인 전"
+            : formatCompact(channel.subscribers);
+          const badgeClass = count.total >= 5 ? "green" : count.total ? "amber" : "";
+          return `<button class="channel-item ${state.selectedChannelId === channel.id ? "active" : ""}" data-channel-id="${channel.id}">
+            <div class="channel-main">
+              <span class="channel-name"><a class="channel-name-link" href="${escapeHtml(channel.url)}" target="_blank" rel="noreferrer">${escapeHtml(channel.name)}</a></span>
+              <span class="badge ${badgeClass}">${count.total}개</span>
+            </div>
+            <div class="channel-meta">
+              <span>구독자 ${subscriberText}</span>
+              <span>${formatNumber(count.total)}개 영상</span>
+              <span>${formatNumber(count.mentions)}개 도서감지</span>
+              <span>${formatCompact(count.views)} 조회</span>
+            </div>
+          </button>`;
+        })
+      ];
+      els.channelList.innerHTML = rows.join("");
+      document.getElementById("channelCount").textContent = `${formatNumber(channels.length)}개`;
+      els.channelList.querySelectorAll("[data-channel-id]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.selectedChannelId = button.dataset.channelId;
+          render();
+        });
+      });
+      els.channelList.querySelectorAll(".channel-name-link").forEach(link => {
+        link.addEventListener("click", event => {
+          event.stopPropagation();
+        });
+      });
+    }
+
+    function renderVideos(videos) {
+      if (!videos.length) {
+        const periodDays = getSelectedPeriodDays();
+        const emptyMessage = state.hasFetched
+          ? `조건에 맞는 영상이 없습니다. 전체 영상을 보려면 보기 필터를 바꿔보세요.`
+          : `아직 수집된 영상이 없습니다. 실제 API 수집을 실행하면 최근 ${periodDays}일 영상이 표시됩니다.`;
+        els.videoRows.innerHTML = `<tr><td colspan="9" class="empty">${emptyMessage}</td></tr>`;
+        return;
+      }
+
+      els.videoRows.innerHTML = videos
+        .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+        .map(video => {
+          const books = video.books.length
+            ? video.books.map(book => {
+              const price = book.priceText ? ` · ${book.priceText}` : "";
+              const tooltip = book.source === "product_tag"
+                ? `제품 태그에서 감지됨${price}\n${book.evidence || ""}`
+                : book.evidence || "";
+              return statusBadge(`${book.title}${price}`, "green", tooltip);
+            }).join(" ")
+            : `<span class="badge">미감지</span>`;
+          const confidence = video.books.length ? `${video.confidence}%` : "-";
+          const bookStatus = getBookDetectionStatus(video);
+          const transcriptStatus = getTranscriptApiStatus(video);
+          const browserStatus = getBrowserTranscriptStatus(video);
+          const title = video.youtubeUrl
+            ? `<a href="${escapeHtml(video.youtubeUrl)}" target="_blank" rel="noreferrer">${escapeHtml(video.title)}</a>`
+            : escapeHtml(video.title);
+          return `<tr>
+            <td>
+              <div class="video-title">${title}</div>
+              <div class="video-meta"><span>${video.publishedAt}</span><span>${formatCompact(video.views)} 조회</span></div>
+            </td>
+            <td>${escapeHtml(video.channel.name)}</td>
+            <td>${statusBadge(bookStatus.label, bookStatus.className, bookStatus.tooltip)}</td>
+            <td>${statusBadge(transcriptStatus.label, transcriptStatus.className, transcriptStatus.tooltip)}</td>
+            <td>${statusBadge(browserStatus.label, browserStatus.className, browserStatus.tooltip)}</td>
+            <td>${renderProductTags(video)}</td>
+            <td>${books}</td>
+            <td>${confidence}</td>
+            <td><div class="quote">${escapeHtml(video.quote)}</div></td>
+          </tr>`;
+        }).join("");
+    }
+
+    function renderBooks(books) {
+      if (!books.length) {
+        els.bookList.innerHTML = `<div class="empty">추출된 도서가 없습니다.</div>`;
+        els.bookDetail.innerHTML = `<div class="empty">도서를 선택하면 상세 지표가 표시됩니다.</div>`;
+        return;
+      }
+
+      if (!state.selectedBookTitle || !books.some(book => book.title === state.selectedBookTitle)) {
+        state.selectedBookTitle = books[0].title;
+      }
+
+      els.bookList.innerHTML = books.map(book => `
+        <article class="card ${state.selectedBookTitle === book.title ? "active" : ""}" data-book-title="${escapeHtml(book.title)}">
+          <div class="book-row">
+            <div>
+              <p class="book-title">${escapeHtml(book.title)}</p>
+              <div class="book-meta"><span>${escapeHtml(book.author)}</span><span>${escapeHtml(book.category)}</span><span>${book.channels.size}개 채널</span></div>
+            </div>
+            <div class="score">${book.score}</div>
+          </div>
+          <div class="book-meta" style="margin-top: 9px;"><span>${book.mentions}회 언급</span><span>${formatCompact(book.views)} 누적 조회</span><span>평균 신뢰도 ${Math.round(book.avgConfidence)}%</span></div>
+        </article>
+      `).join("");
+
+      els.bookList.querySelectorAll("[data-book-title]").forEach(card => {
+        card.addEventListener("click", () => {
+          state.selectedBookTitle = card.dataset.bookTitle;
+          render();
+        });
+      });
+
+      const selected = books.find(book => book.title === state.selectedBookTitle);
+      renderBookDetail(selected);
+    }
+
+    function renderBookDetail(book) {
+      const timeline = book.videos
+        .sort((a, b) => a.publishedAt.localeCompare(b.publishedAt))
+        .slice(-5)
+        .map(video => `
+          <div class="timeline-row">
+            <span>${video.publishedAt}</span>
+            <span>${escapeHtml(video.channel.name)}</span>
+            <strong>${formatCompact(video.views)}</strong>
+          </div>
+        `).join("");
+
+      els.bookDetail.innerHTML = `
+        <div>
+          <h3>${escapeHtml(book.title)}</h3>
+          <div class="book-meta"><span>${escapeHtml(book.author)}</span><span>${escapeHtml(book.category)}</span><span>영향 점수 ${book.score}</span></div>
+        </div>
+        <div class="bars">
+          ${bar("검색량 상승 추정", book.searchLift)}
+          ${bar("판매 순위 개선 가능성", book.rankChange)}
+          ${bar("리뷰 증가 관찰값", book.reviewLift)}
+        </div>
+        <div class="timeline">${timeline}</div>
+        <div class="quote">다음 단계에서는 업로드일 기준 전후 7일/14일/30일의 서점 순위, 검색량, 리뷰 수를 붙여 실제 상관관계를 계산합니다.</div>
+      `;
+    }
+
+    function bar(label, value) {
+      return `<div class="bar">
+        <div class="bar-label"><span>${label}</span><strong>${value}</strong></div>
+        <div class="track"><div class="fill" style="width: ${value}%"></div></div>
+      </div>`;
+    }
+
+    function render() {
+      els.confidenceText.textContent = `${els.confidence.value}%`;
+      const videos = getFilteredVideos();
+      const channelSummaryVideos = getChannelSummaryVideos();
+      const candidates = getParserCandidates();
+      const books = getBookStats(videos);
+      renderMetrics(videos, books, candidates);
+      renderParser(candidates);
+      renderChannels(channelSummaryVideos);
+      renderVideos(videos);
+      renderBooks(books);
+    }
+
+    els.parseButton.addEventListener("click", () => {
+      if (!state.hasFetched) {
+        state.parseMessage = "먼저 실제 API 수집을 실행해주세요. 수집된 영상이 있어야 파싱 결과를 표시할 수 있습니다.";
+        render();
+        return;
+      }
+      state.parserHasRun = true;
+      state.parsedAt = new Intl.DateTimeFormat("ko-KR", {
+        dateStyle: "short",
+        timeStyle: "short"
+      }).format(new Date());
+      state.parseMessage = "";
+      els.period.value = "1";
+      render();
+    });
+
+    els.allButton.addEventListener("click", collectEverythingFast);
+    els.fetchButton.addEventListener("click", fetchRealYoutubeData);
+    els.transcriptButton.addEventListener("click", collectTranscriptsForVideos);
+    els.browserTranscriptButton.addEventListener("click", collectBrowserTranscriptsForVideos);
+    els.productButton.addEventListener("click", collectProductTagsForVideos);
+
+    els.mockButton.addEventListener("click", () => {
+      channels = initialChannels;
+      state.selectedChannelId = "all";
+      state.selectedBookTitle = null;
+      state.parserHasRun = false;
+      state.parsedAt = null;
+      state.hasFetched = false;
+      state.parseMessage = "채널 목록만 남기고 수집 결과를 초기화했습니다.";
+      els.period.value = "1";
+      render();
+    });
+
+    [els.search, els.period, els.confidence, els.mention].forEach(input => {
+      input.addEventListener("input", render);
+      input.addEventListener("change", render);
+    });
+
+    render();
+  </script>
+</body>
+</html>
